@@ -6,7 +6,7 @@ tags:
 - 开发环境
 ---
 
-本文将以安装 Ubuntu14.04 服务器版本到虚拟机中为例来介绍 VirtualBox 的使用。
+本文将以安装 Ubuntu14.04 操作系统到虚拟机中为例来介绍 VirtualBox 的使用。
 
 <!-- more -->
 
@@ -122,4 +122,57 @@ tags:
 
 1. 安装增强功能
 
+{% codeblock 登录虚拟机 lang:bash %}
+# ssh -p <端口> <用户>@<主机地址>
+ssh -p 2200 test@192.168.1.101
+{% endcodeblock %}
+
+{% codeblock 安装依赖软件 lang:bash %}
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential
+{% endcodeblock %}
+
+点击如下图所示的`安装增强功能`:
+
+![](/blog/2020/02/15/VirtualBox-安装及配置-Ubuntu14-04-服务器版/virtualmachine-install-enhance.jpg)
+
+{% codeblock 挂载光盘 lang:bash %}
+sudo mkdir /mnt/cdrom
+sudo mount /dev/cdrom /mnt/cdrom/
+# mount: block device /dev/sr0 is write-protected, mounting read-only
+{% endcodeblock %}
+
+{% codeblock 运行安装程序 lang:bash %}
+cd /mnt/cdrom/
+sudo ./VBoxLinuxAdditions.run
+sudo shutdown -h 0 -r
+{% endcodeblock %}
+
 2. 共享文件夹
+
+{% codeblock 加入 vboxsf 组 lang:bash %}
+# sudo usermod -a -G vboxsf <用户>
+sudo usermod -a -G vboxsf test
+{% endcodeblock %}
+
+回到`设置`，选择`共享文件夹`并点击如下所示按钮:
+
+![](/blog/2020/02/15/VirtualBox-安装及配置-Ubuntu14-04-服务器版/virtualmachine-new-share.jpg)
+
+如下般设置:
+
+![](/blog/2020/02/15/VirtualBox-安装及配置-Ubuntu14-04-服务器版/virtualmachine-new-share-settings.jpg)
+
+*挂载点不用填。*
+
+{% codeblock 重启虚拟机 lang:bash %}
+sudo shutdown -h 0 -r
+{% endcodeblock %}
+
+## 总结
+
+以上我们就在虚拟机中安装好了 Ubuntu 操作系统，并做了以下设置:
+
+- 将虚拟机的`22`端口转发到主机`2200`端口。
+- 创建一个共享文件夹用于虚拟机与主机间的文件共享。
