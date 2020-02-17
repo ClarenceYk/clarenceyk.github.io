@@ -104,7 +104,7 @@ bitbake fsl-image-mfgtool-initramfs
 
 ## 总结
 
-通过以上步骤，我们完成了 `Freescale iMX6Q Yocto Project` 开发环境搭建并完成了如下方面的工作:
+通过以上步骤，我们完成了 `Freescale iMX6Q Yocto Project` 开发环境搭建，其中包含如下方面的工作:
 
 - 安装项目依赖软件
 - 安装 repo
