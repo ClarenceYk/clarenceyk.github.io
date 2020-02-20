@@ -102,7 +102,7 @@ firmware/u-boot.imx: clear_dcd,load,plug,jump header
 mkdir firmware 
 {% endcodeblock %}
 
-将[生成的镜像文件](https://clarenceyk.github.io/blog/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/)拷贝到 `firmware` 目录中后执行:
+将[生成的镜像文件](/blog/2020/02/17/搭建-iMX6Q-SabreSD-Yocto-项目开发环境#编译构建-MFGTool)拷贝到 `firmware` 目录中后执行:
 
 {% codeblock 运行 imx_usb lang:bash %}
 ./imx_usb 
