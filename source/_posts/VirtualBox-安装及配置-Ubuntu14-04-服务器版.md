@@ -170,9 +170,22 @@ sudo usermod -a -G vboxsf test
 sudo shutdown -h 0 -r
 {% endcodeblock %}
 
+3. USB 设备支持
+
+访问 VirtualBox 官网下载[拓展包](https://www.virtualbox.org/wiki/Download_Old_Builds_6_0)。*注意，请找到对应自己版本的拓展包。*
+
+![](/blog/2020/02/15/VirtualBox-安装及配置-Ubuntu14-04-服务器版/virtualmachine-extension-pack.jpg)
+
+回到 VirtualBox 主界面，选择`管理`->`全局设定`->`拓展`:
+
+![](/blog/2020/02/15/VirtualBox-安装及配置-Ubuntu14-04-服务器版/virtualmachine-extension-pack-sel.jpg)
+
+选择刚刚下载的拓展包，安装。
+
 ## 总结
 
 以上我们就在虚拟机中安装好了 Ubuntu 操作系统，并做了以下设置:
 
 - 将虚拟机的`22`端口转发到主机`2200`端口。
 - 创建一个共享文件夹用于虚拟机与主机间的文件共享。
+- 安装了拓展包使虚拟机支持 USB2.0 以及 USB3.0 设备。
