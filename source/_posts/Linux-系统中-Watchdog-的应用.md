@@ -80,18 +80,16 @@ ioctl(watchdog_fd, WDIOC_KEEPALIVE, NULL);
 {% codeblock main.c lang:c %}
 int main(void)
 {
-	int ret = -1;
-	struct timespec timeout = { 1, 0 };
+	struct timespec wait_time = { 1, 0 };
 
-	ret = api_watchdog_init(WATCHDOG_DEV, WATCHDOG_TIMEOUT); // timeout: 2 seconds
-	if (ret < 0)
-		return ret;
+	if (api_watchdog_init(WATCHDOG_DEV, WATCHDOG_TIMEOUT) < 0)
+		return -1;
 
 	printf("Watchdog opened!\n");
 
 	while (1) {
 		api_watchdog_feed();
-		nanosleep(&timeout, NULL);
+		nanosleep(&wait_time, NULL);
 	}
 }
 {% endcodeblock %}
