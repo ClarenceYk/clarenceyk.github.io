@@ -73,7 +73,7 @@ ioctl(watchdog_fd, WDIOC_SETTIMEOUT, &seconds);
 ioctl(watchdog_fd, WDIOC_KEEPALIVE, NULL);
 {% endcodeblock %}
 
-可以将上面的这些操作[封装成函数接口](/blog/2020/02/22/Linux-系统中-Watchdog-的应用/main.c)，在函数内部做一些错误处理。
+可以将上面的这些操作[封装成函数接口](https://gist.github.com/ClarenceYk/c71502b63378e3fbcd763fdaa658803d)，在函数内部做一些错误处理。
 
 ## 测试
 
@@ -98,7 +98,94 @@ int main(void)
 
 ## 引入外部 Kick 信号
 
+以一个具体的应用场景为例，如下:
 
+{% codeblock 硬件连接 %}
+-------   GPIO  --------
+| CPU | <------ | FPGA |
+-------         --------
+{% endcodeblock %}
+
+FPGA 通过 CPU 的 GPIO 外设向开发板输入一个周期性翻转信号。CPU 在每一个周期开始时重置 watchdog，我们可以检测 GPIO 的上升沿或者下降沿获得周期开始的信息。
+
+对 GPIO 的操作在 Linux 环境中有很多方法实现，这里我们使用 [libgpiod](https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/) 库来实现对 GPIO 上升沿信号的检测。
+
+`libgpiod` 中封装了很多便于使用的 API。在当前使用场景中，只需调用函数 `gpiod_ctxless_event_monitor` 就可实现我们想要的功能，其函数签名以及相应的文档注释如下:
+
+```c
+/**
+ * @brief Wait for events on a single GPIO line.
+ * @param device Name, path, number or label of the gpiochip.
+ * @param event_type Type of events to listen for.
+ * @param offset GPIO line offset to monitor.
+ * @param active_low The active state of this line - true if low.
+ * @param consumer Name of the consumer.
+ * @param timeout Maximum wait time for each iteration.
+ * @param poll_cb Callback function to call when waiting for events.
+ * @param event_cb Callback function to call for each line event.
+ * @param data User data passed to the callback.
+ * @return 0 if no errors were encountered, -1 if an error occurred.
+ * @note The way the ctxless event loop works is described in detail in
+ *       ::gpiod_ctxless_event_monitor_multiple - this is just a wrapper aound
+ *       this routine which calls it for a single GPIO line.
+ */
+int gpiod_ctxless_event_monitor(const char *device, int event_type,
+                                unsigned int offset, bool active_low,
+                                const char *consumer,
+                                const struct timespec *timeout,
+                                gpiod_ctxless_event_poll_cb poll_cb,
+                                gpiod_ctxless_event_handle_cb event_cb,
+                                void *data) GPIOD_API;
+```
+
+如上可以看出几个关键参数，通过 `device`、`offset` 参数指定使用的 GPIO 管脚，`event_type` 指定检测事件（如，上升沿事件），`event_cb` 是触发指定事件后调用的回调函数，其调用方法大致如下:
+
+{% codeblock 上升沿检测 lang:c %}
+// WDOG_GPIO_SIG_CHIP "/dev/gpiochip6"
+// WDOG_GPIO_SIG_PORT 7
+gpiod_ctxless_event_monitor(WDOG_GPIO_SIG_CHIP, GPIOD_CTXLESS_EVENT_RISING_EDGE,
+                        WDOG_GPIO_SIG_PORT, false, "wdog", &timeout,
+                        NULL, gpio6_port7_rising_edge_handle_cb, NULL);
+{% endcodeblock %}
+
+接下来只需要再定义回调函数即可，回调函数的函数签名如下:
+
+```c
+/**
+ * @brief Simple event callback signature.
+ *
+ * The callback function takes the following arguments: event type (int),
+ * GPIO line offset (unsigned int), event timestamp (const struct timespec *)
+ * and a pointer to user data (void *).
+ *
+ * This callback is called by the ctxless event loop functions for each GPIO
+ * event. If the callback returns ::GPIOD_CTXLESS_EVENT_CB_RET_ERR, it should
+ * also set errno.
+ */
+typedef int (*gpiod_ctxless_event_handle_cb)(int, unsigned int,
+                                             const struct timespec *, void *);
+```
+
+所以我们定义的上升沿事件回调函数大致如下:
+
+{% codeblock 定义回调函数 lang:c %}
+int gpio6_port7_rising_edge_handle_cb(int type, unsigned int offset,
+                            const struct timespec *timestamp, void *arg)
+{
+    wdog_count ++;
+
+    if (wdog_count >= WDOG_FEED_PERIOD / FPGA_WDOG_SIG_PERIOD) {
+        api_watchdog_feed();
+        wdog_count = 0;
+    }
+
+    return GPIOD_CTXLESS_EVENT_CB_RET_OK;
+}
+{% endcodeblock %}
+
+其中关键在于 `api_watchdog_feed()`。
+
+以上就实现了外部 Kick 信号的引入。
 
 ## 总结
 
@@ -107,3 +194,4 @@ int main(void)
 - 内核选项配置
 - 部分 API 介绍
 - 设备操作接口封装
+- 实际应用场景示例
