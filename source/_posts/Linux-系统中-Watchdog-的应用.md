@@ -67,9 +67,9 @@ watchdog_fd = open(watchdog_dev, O_RDWR);
 ioctl(watchdog_fd, WDIOC_SETTIMEOUT, &seconds);
 {% endcodeblock %}
 
-2. ping watchdog
+2. feed watchdog
 
-{% codeblock api_watchdog_settimeout lang:c %}
+{% codeblock api_watchdog_feed lang:c %}
 ioctl(watchdog_fd, WDIOC_KEEPALIVE, NULL);
 {% endcodeblock %}
 
@@ -94,7 +94,11 @@ int main(void)
 }
 {% endcodeblock %}
 
-如上，先初始化 watchdog 然后每秒 ping watchdog 一次，此时系统如常运行。当 kill 此程序后，由于前面在内核开启了 `Disable watchdog shutdown on close` 选项 watchdog 会继续工作，同时没有继续 ping 的操作所以系统进入重启流程。
+如上，先初始化 watchdog 然后每秒 feed watchdog 一次，此时系统如常运行。当 kill 此程序后，由于前面在内核开启了 `Disable watchdog shutdown on close` 选项 watchdog 会继续工作，同时没有继续 feed 的操作所以系统进入重启流程。
+
+## 引入外部 Kick 信号
+
+
 
 ## 总结
 
