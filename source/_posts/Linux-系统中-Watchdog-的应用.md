@@ -187,6 +187,39 @@ int gpio6_port7_rising_edge_handle_cb(int type, unsigned int offset,
 
 以上就实现了外部 Kick 信号的引入。
 
+## 配置 systemd 服务
+
+我们希望 watchdog 程序随着系统自动启动，所以配置如下的 systemd 服务:
+
+{% codeblock wdog_fpga.service %}
+[Unit]
+Description=Watchdog systemd service.
+ConditionKernelCommandLine=!disable_wdog
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/wdog_fpga
+
+[Install]
+WantedBy=multi-user.target
+{% endcodeblock %}
+
+其中我们定义了 `ConditionKernelCommandLine` 参数为 `!disable_wdog`。这样当系统启动之后 systemd 会检测内核启动命令行参数中是否存在`disable_wdog`，如果不存在则启动 watchdog，反之依然。这样配置的好处是，我们可以在系统启动之前配置是否开启 watchdog。
+
+## U-Boot 环境设置内核命令行参数
+
+如果我们不想开启 watchdog，则在 U-Boot 启动后暂停引导内核，然后将 `disable_wdog` 参数设置到内核命令行参数中，如下:
+
+```shell
+setenv bootargs ... 其他参数 ... disable_wdog
+```
+
+然后在引导内核:
+
+```shell
+run bootcmd
+```
+
 ## 总结
 
 文本介绍了如何在 Linux 操作系统中使用 watchdog，分为以下方面的工作:
