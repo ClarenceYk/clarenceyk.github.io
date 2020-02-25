@@ -214,7 +214,7 @@ WantedBy=multi-user.target
 setenv bootargs ... 其他参数 ... disable_wdog
 ```
 
-然后在引导内核:
+然后再引导内核启动:
 
 ```shell
 run bootcmd
