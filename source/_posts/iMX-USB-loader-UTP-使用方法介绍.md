@@ -1,6 +1,7 @@
 ---
 title: iMX USB loader & UTP 使用方法介绍
 date: 2020-02-18 14:04:49
+updated: 2020-02-18 17:59:03
 tags:
 - iMX6Q
 - mfgtool

@@ -1,6 +1,7 @@
 ---
 title: iMX6Q SABRE-SD 开发板软件烧录
 date: 2020-02-19 17:04:39
+updated: 2020-02-20 22:55:42
 tags:
 - iMX6Q
 ---

@@ -1,6 +1,7 @@
 ---
 title: Linux 系统中 Watchdog 的应用
 date: 2020-02-22 10:08:56
+updated: 2020-02-23 17:43:09
 tags:
 - Linux
 - Watchdog

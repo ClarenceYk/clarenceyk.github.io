@@ -1,6 +1,7 @@
 ---
 title: 搭建 iMX6Q SabreSD Yocto 项目开发环境
 date: 2020-02-17 11:03:41
+updated: 2020-02-18 13:50:17
 tags:
 - iMX6Q
 - yocto

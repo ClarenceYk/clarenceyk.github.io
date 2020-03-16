@@ -1,6 +1,7 @@
 ---
 title: iMX6Q SABRE-SD 开发板系统软件
 date: 2020-02-19 14:34:46
+updated: 2020-02-19 20:38:55
 tags:
 - iMX6Q
 - U-Boot

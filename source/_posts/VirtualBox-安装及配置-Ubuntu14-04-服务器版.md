@@ -1,6 +1,7 @@
 ---
 title: VirtualBox 安装及配置 Ubuntu14.04 服务器版
 date: 2020-02-15 16:02:18
+updated: 2020-02-19 10:19:30
 tags:
 - iMX6Q
 - 开发环境
