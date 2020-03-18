@@ -117,7 +117,6 @@ static int mx6q_dcd_table[] = {
 
 接着从 iMX6Q 芯片参考手册中可查到寄存器 MMDC_MDCTL 数据位的分配:
 
-![]()
 {% img /2020/03/16/iMX6Q-2GB-内存支持/IMX6DQRM_44_12_1_0.png '"寄存器 MMDC_MDCTL" "寄存器 MMDC_MDCTL"' %}
 
 从而得知原始代码中，寄存器 MMDC_MDCTL 配置的含义为：
