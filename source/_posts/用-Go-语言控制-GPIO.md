@@ -1,7 +1,7 @@
 ---
 title: 用 Go 语言控制 GPIO
 date: 2020-03-18 18:28:40
-updated: 2020-03-18 18:28:40
+updated: 2020-03-18 21:25:30
 tags:
 - GPIO
 - Linux
@@ -38,7 +38,7 @@ iMX6Q 芯片手册上有如下描述:
 
 ## 寄存器地址
 
-iMX6Q 有7组 GPIO 每组有8个 32-bit 的寄存器，每个寄存器上 1-bit 控制着其对应的1个管脚的配置，也就是每组 GPIO 有32个管脚。关于 iMX6Q GPIO 更为详细的介绍可参阅 [Definitive GPIO guide](https://www.kosagi.com/w/index.php?title=Definitive_GPIO_guide)。
+iMX6Q 有7组 GPIO 每组有8个 32-bit 的寄存器，每个寄存器上 1-bit 控制着其对应的1个管脚的配置，也就是每组 GPIO 有32个管脚，每个管脚有8个配置项。关于 iMX6Q GPIO 更为详细的介绍可参阅 [Definitive GPIO guide](https://www.kosagi.com/w/index.php?title=Definitive_GPIO_guide)。
 
 对于只使用输入/输出功能的情况，8个寄存器中我们只需关心数据寄存器和方向寄存器这2个（对于管脚复用寄存器，因为默认状态下几乎所有管脚都是 GPIO 模式所以基本不用关心，具体情况请参考芯片手册）。
 
