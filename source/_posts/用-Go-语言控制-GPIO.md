@@ -38,7 +38,7 @@ iMX6Q 芯片手册上有如下描述:
 
 ## 寄存器地址
 
-iMX6Q 有7组 GPIO 每组有8个 32-bit 的寄存器，每个寄存器上 1-bit 控制着其对应的1个管脚，也就是每组 GPIO 有32个管脚。关于 iMX6Q GPIO 更为详细的介绍可参阅 [Definitive GPIO guide](https://www.kosagi.com/w/index.php?title=Definitive_GPIO_guide)。
+iMX6Q 有7组 GPIO 每组有8个 32-bit 的寄存器，每个寄存器上 1-bit 控制着其对应的1个管脚的配置，也就是每组 GPIO 有32个管脚。关于 iMX6Q GPIO 更为详细的介绍可参阅 [Definitive GPIO guide](https://www.kosagi.com/w/index.php?title=Definitive_GPIO_guide)。
 
 对于只使用输入/输出功能的情况，8个寄存器中我们只需关心数据寄存器和方向寄存器这2个（对于管脚复用寄存器，因为默认状态下几乎所有管脚都是 GPIO 模式所以基本不用关心，具体情况请参考芯片手册）。
 
@@ -125,7 +125,7 @@ value := mapper[0] & uint32(0x00000001<<10)
 
 ## 总结
 
-本文介绍了 GPIO 的基本操作、iMX6Q GPIO 外设寄存器的分布信息以及 Go 语言中使用内存映射的方法，最后实现了使用 Go 语言对 GPIO 进行控制。对于以上的过程我们可以进一步将其封装成 `struct` 方便使用，类似如下:
+本文介绍了 GPIO 的基本操作、iMX6Q GPIO 外设寄存器的分布以及 Go 语言中使用内存映射的方法，最后实现了使用 Go 语言对 GPIO 进行控制。对于以上的过程我们可以进一步将其封装成 `struct` 方便使用，类似如下:
 
 {% codeblock gpio_imx6q.go lang:go %}
 type GPIOPin struct {
