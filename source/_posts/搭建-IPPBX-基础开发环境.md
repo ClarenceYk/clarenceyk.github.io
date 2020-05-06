@@ -69,7 +69,7 @@ sdb      8:16   0 232.9G  0 disk
 
 ### 工具软件
 
-在主系统中安装软件包 `systemd-contianer`（此中软件包中包含 `systemd-nspawn` 工具）以及同步工具 `rsync`。
+在主系统中安装软件包 `systemd-contianer`（此中软件包中包含 `systemd-nspawn` 工具）以及安装同步工具 `rsync`。
 
 ```shell
 sudo apt update
@@ -81,7 +81,7 @@ sudo apt install rsync
 
 ## 运行“容器”
 
-将2块装好了操作系统的硬盘都接到主板上，然后启动开发机进入 bios 将装有 Ubuntu20.04 操作系统的硬盘设置到启动序列的第一位。进入主系统后，查看硬盘分区，大致如下：
+将2块装好了操作系统的硬盘都接到主板上，然后启动开发机进入 `BIOS` 将装有 Ubuntu20.04 操作系统的硬盘设置到启动序列的第一位。进入主系统后，查看硬盘分区，大致如下：
 
 ```shell
 $ lsblk
@@ -134,7 +134,7 @@ debian login:
 sudo shutdown now
 ```
 
-或者在 1s 内按下 `^]` 3次。（control 键 + ] 键）
+或者在 1s 内按下 `^]` 3次。（`control 键` + `] 键`）
 
 ## 容器中安装平台环境
 
