@@ -1,7 +1,7 @@
 ---
 title: 复刻 Linux 操作系统到另一台设备
 date: 2020-05-08 14:32:27
-updated: 2020-05-08 14:32:27
+updated: 2020-05-08 17:42:17
 tags:
   - Linux
   - rsync
