@@ -39,7 +39,7 @@ tags:
 
 ```bash
 sudo mkdir -p /mnt/debian_10
-sudo mount /dev/sdb2
+sudo mount /dev/sdb2 /mnt/debian_10
 ```
 
 ### 安装&配置 rsync
@@ -104,7 +104,7 @@ mkswap /dev/sda1
 mkfs.ext4 /dev/sda2
 ```
 
-这里我们将 `sda` 划了2个分区，第一个是4G的交换分区，剩余的空间格式化为 ext4 文件系统用作系统分区（分区方式需和源设备保持一致）。
+这里我们将 `sda` 划了2个分区，第一个是4G的交换分区，剩余的空间划分为系统分区并格式化为 `ext4` 文件系统（分区方式需和源设备保持一致）。
 
 ### 从源设备同步文件
 
