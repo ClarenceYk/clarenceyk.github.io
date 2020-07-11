@@ -1,7 +1,7 @@
 ---
 title: 【OSTEP 练习题】测量操作系统切换上下文的耗时
 date: 2020-07-10 16:49:16
-updated: 2020-07-11 20:39:12
+updated: 2020-07-11 23:00:06
 tags:
 - Linux
 - Operating System
@@ -90,6 +90,17 @@ lscpu
 ```shell
 cat /proc/cpuinfo
 ```
+
+设置完后可以用 `stress` 命令测试一下：
+
+```shell
+sudo pacman -S stress
+stress --cpu 8
+```
+
+从下图可以看出内核在调度用户进程时绕开了 `CPU3`（从 0 开始计数）。
+
+{% img /2020/07/10/ostep-measure-cost-of-context-switch/stress_cpu.png '"stress_cpu" "stress_cpu"' %}
 
 ### Pipe
 
