@@ -1,16 +1,16 @@
 ---
 title: 【OSTEP 练习题】测量操作系统切换上下文的耗时
-date: 2020-07-10 16:49:16
-updated: 2020-07-11 23:00:06
+date: 2020-07-11 16:49:16
+updated: 2020-07-12 23:00:06
 tags:
 - Linux
 - Operating System
 - Context Switch
 ---
 
-{% img /2020/07/10/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg '"measure_ctx_switch" "measure_ctx_switch"' %}
+{% img /2020/07/11/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg '"measure_ctx_switch" "measure_ctx_switch"' %}
 
-尝试解答 `OSTEP` <sup>[1](#注释)</sup> 中第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。
+尝试解答 `OSTEP` <sup>[1](#注释)</sup> 第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。
 
 <!--more-->
 
@@ -66,7 +66,7 @@ if (sched_setaffinity(getpid(), sizeof(set), &set) < 0) {
 
 ### 内核启动参数
 
-为了保证指定的 CPU 核上只有用于测试的 2 个用户进程，需要设置 `isolcpus` 这个启动参数给内核，告诉内核在调度其余用户进程时排除指定的 CPU 核心。
+为了保证指定的 CPU 核上只有用于测试的 2 个用户进程，需要设置 `isolcpus` 这个启动参数给内核。此参数告诉内核在调度其余用户进程时排除指定的 CPU 核心。
 
 ```bash
 cat /proc/cmdline
@@ -100,7 +100,7 @@ stress --cpu 8
 
 从下图可以看出内核在调度用户进程时绕开了 `CPU3`（从 0 开始计数）。
 
-{% img /2020/07/10/ostep-measure-cost-of-context-switch/stress_cpu.png '"stress_cpu" "stress_cpu"' %}
+{% img /2020/07/11/ostep-measure-cost-of-context-switch/stress_cpu.png '"stress_cpu" "stress_cpu"' %}
 
 ### Pipe
 
@@ -110,7 +110,7 @@ stress --cpu 8
 
 ## 结果
 
-在我的平台<sup>[2](#注释)</sup> 上的测试结果为：上下文切换平均耗时 3.42 微秒。
+在我的平台<sup>[2](#注释)</sup> 上的测试结果为：操作系统上下文切换平均耗时 3.42 微秒。
 
 ## 源码
 
