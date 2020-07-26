@@ -317,4 +317,4 @@ sudo iptables -t nat -v -L PREROUTING -n
 本文详细介绍了如何将 VoIP 服务容器化，涉及的内容包括 LXD 的使用、systemd-nspawn 的使用、根文件系统制作、容器镜像制作以及和 VoIP 服务相关的网络配置。通过容器化的操作能让各平台的运行环境保持一致，减少开发人员不必要的时间损耗。至于选择 LXD 作为实现容器化的平台原因有2：
 
 1. VoIP 服务软件组成复杂，部署在一个带根文件系统的容器中更为方便；
-2. LXD 的实现性能较好，具体研究请参考论文 [Performance analysis of multi services on container Docker, LXC, and LXD](http://www.beei.org/index.php/EEI/article/viewFile/1953/1596)
+2. LXD 的实现性能较好，关于业界几种容器化工具的性能对比分析请参考论文 [Performance analysis of multi services on container Docker, LXC, and LXD](http://www.beei.org/index.php/EEI/article/viewFile/1953/1596)
