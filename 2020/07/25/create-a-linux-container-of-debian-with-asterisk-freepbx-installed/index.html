@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.3.0">
+<meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -223,7 +223,7 @@
         <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/top_pic.jpg" class="" title="top_pic" alt="top_pic">
 
 <p>将有繁琐配置的开发环境打包进容器中能减少我们的开发负担，本文将介绍如何把基于 Asterisk 的 VoIP 服务容器化。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h2><p>如果你的 VoIP 服务开发环境、测试环境和生产环境在同一台物理机上，也许不会察觉到环境搭建的繁琐以及消耗在配置环境上的时间。让我们来设想这样一个场景：客户指定使用某一个 Linux 发行版安装 Asterisk（或者配合 FreePBX）开发一套存在特定需求的 VoIP 服务，基于这个前提你拿到一台新的设备开始工作：</p>
 <ol>
@@ -255,29 +255,39 @@
 <h3 id="安装并配置-LXD"><a href="#安装并配置-LXD" class="headerlink" title="安装并配置 LXD"></a>安装并配置 LXD</h3><p>LXD 是一下代开源系统容器、虚拟机管理器。关于 LXD 更为详细的介绍请参考<a target="_blank" rel="noopener" href="https://linuxcontainers.org/lxd/docs/master/index">官方文档</a>。</p>
 <p>使用 <code>snap</code> 安装 LXD，如果系统没有 snap 先安装 snap：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install snap</span><br><span class="line">sudo snap install core</span><br></pre></td></tr></table></figure>
+
 <p>安装 <code>LXD</code>：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo snap install lxd</span><br></pre></td></tr></table></figure>
+
 <p>将用户添加到 lxd 组：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo usermod -a -G lxd $YOUR_USERNAME</span><br></pre></td></tr></table></figure>
+
 <h4 id="配置-LXD"><a href="#配置-LXD" class="headerlink" title="配置 LXD"></a>配置 LXD</h4><p>一般情况下直接在命令行中输入 <code>lxd init</code> 然后全部选择都使用默认选项即可。这里我希望使用自定义的存储设备作为 lxd 的 <code>storage pool</code>。</p>
 <p>首先创建一个大小合适的空文件：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir $HOME/lxd_storage</span><br><span class="line">dd if=/dev/zero of=$HOME/lxd_storage/disk bs=1M count=51200 # 50G</span><br></pre></td></tr></table></figure>
+
 <p>创建新的 <code>loop device</code> 并将刚刚创建的空文件关联到此设备：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">losetup /dev/loop14 $HOME/lxd_storage/disk # 先查看 /dev 目录下是否已有 loop14，有则换一个如：loop15</span><br><span class="line">sudo reboot # 重启生效配置</span><br></pre></td></tr></table></figure>
+
 <p>初始化 lxd 配置：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">uklar@debian:~# lxd init</span><br><span class="line">Would you like to use LXD clustering? (yes/no) [default=no]:</span><br><span class="line">Do you want to configure a new storage pool? (yes/no) [default=yes]:</span><br><span class="line">Name of the new storage pool [default=default]:</span><br><span class="line">Name of the storage backend to use (btrfs, dir) [default=btrfs]:</span><br><span class="line">Would you like to create a new btrfs subvolume under /var/lib/lxd? (yes/no) [default=yes]: no</span><br><span class="line">Create a new BTRFS pool? (yes/no) [default=yes]:</span><br><span class="line">Would you like to use an existing block device? (yes/no) [default=no]: yes</span><br><span class="line">Path to the existing block device: /dev/loop14</span><br><span class="line">Would you like to connect to a MAAS server? (yes/no) [default=no]:</span><br><span class="line">Would you like to create a new local network bridge? (yes/no) [default=yes]:</span><br><span class="line">What should the new bridge be called? [default=lxdbr0]:</span><br><span class="line">What IPv4 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]:</span><br><span class="line">What IPv6 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]: none</span><br><span class="line">Would you like LXD to be available over the network? (yes/no) [default=no]:</span><br><span class="line">Would you like stale cached images to be updated automatically? (yes/no) [default=yes] no</span><br><span class="line">Would you like a YAML &quot;lxd init&quot; preseed to be printed? (yes/no) [default=no]:</span><br></pre></td></tr></table></figure>
+
 <h3 id="制作根文件系统"><a href="#制作根文件系统" class="headerlink" title="制作根文件系统"></a>制作根文件系统</h3><p>这里使用 <code>debootstrap</code> 获取 debian 的根文件系统：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install debootstrap</span><br><span class="line">mkdir /tmp/debian</span><br><span class="line">sudo debootstrap buster /tmp/debian</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/debootstrap.png" class="" title="debootstrap" alt="debootstrap">
 
 <p>使用 <code>systemd-nspawn</code> 以 <code>chroot</code> 模式切换到 <code>/tmp/debian</code> 中：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install systemd-container # 此软件包中包含了 systemd-nspawn</span><br><span class="line">sudo systemd-container -D /tmp/debian</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/systemd-nspawn.png" class="" title="systemd-nspawn" alt="systemd-nspawn">
 
 <p>做一些基本配置，如设置 root 用户密码、添加普通用户以及配置网络等，然后退出：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">passwd</span><br><span class="line"></span><br><span class="line">useradd -m $USERNAME</span><br><span class="line">passwd $USERNAME</span><br><span class="line"></span><br><span class="line">apt install sudo</span><br><span class="line">usermod -a -G sudo $USERNAME</span><br><span class="line">usermod --shell /bin/bash $USERNAME</span><br><span class="line"></span><br><span class="line">cat &lt;&lt;EOF &gt;/etc/network/interfaces</span><br><span class="line"><span class="meta">#</span><span class="bash"> This file describes the network interfaces available on your system</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> and how to activate them. For more information, see interfaces(5).</span></span><br><span class="line"></span><br><span class="line">source /etc/network/interfaces.d/*</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> The loopback network interface</span></span><br><span class="line">auto lo</span><br><span class="line">iface lo inet loopback</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> The eth0 network interface</span></span><br><span class="line">auto eth0</span><br><span class="line">iface eth0 inet dhcp</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
 <p>接着使用 <code>systemd-nspawn</code> 的容器模式启动 <code>/tmp/debian</code> 以 root 身份登陆：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemd-nspawn -D /tmp/debian --boot</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/systemd-nspawn-login-root.png" class="" title="systemd-nspawn-login-root" alt="systemd-nspawn-login-root">
 
 <p>在容器中安装 Asterisk 以及 FreePBX，过程请参考：</p>
@@ -287,32 +297,42 @@
 </ul>
 <p>配置 hostname：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apt install dbus</span><br><span class="line">hostnamectl set-hostname debian.voip.net</span><br><span class="line">echo &#x27;127.0.0.1 debian.voip.net&#x27; &gt;&gt;/etc/hosts</span><br></pre></td></tr></table></figure>
+
 <p>访问服务器 Web 页面验证容器中的 VoIP 服务是否正常运行：</p>
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/container-freepbx.png" class="" title="container-freepbx" alt="container-freepbx">
 
 <p>从 <code>systemd-nspawn</code> 容器中退出：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shutdown now</span><br></pre></td></tr></table></figure>
+
 <h3 id="创建-LXD-镜像"><a href="#创建-LXD-镜像" class="headerlink" title="创建 LXD 镜像"></a>创建 LXD 镜像</h3><p>将刚刚配置完成的根文件系统打包并压缩：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p ~/container/images/voip_base</span><br><span class="line">cd ~/container/images/voip_base</span><br><span class="line">sudo tar czf voip_base.tar.gz -C /tmp/debian .</span><br></pre></td></tr></table></figure>
+
 <p>为镜像创建 metadata 文件：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF &gt;./metadata.yaml</span><br><span class="line">architecture: &quot;x86_64&quot;</span><br><span class="line">creation_date: $(date +%s)</span><br><span class="line">properties:</span><br><span class="line">  architecture: &quot;x86_64&quot;</span><br><span class="line">  description: &quot;Debian(buster) with preinstalled Asterisk13&amp;FreePBX15 ($(date +%Y%m%d))&quot;</span><br><span class="line">  os: &quot;debian&quot;</span><br><span class="line">  release: &quot;buster&quot;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">tar czf metadata.tar.gz metadata.yaml</span><br></pre></td></tr></table></figure>
+
 <p>将压缩包作为镜像导入 LXD：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lxc image import \</span><br><span class="line">~/container/images/voip_base/metadata.tar.gz \</span><br><span class="line">~/container/images/voip_base/voip_base.tar.gz \</span><br><span class="line">--alias voip-base</span><br></pre></td></tr></table></figure>
+
 <p>查看镜像是否成功导入：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lxc image list</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/lxc-image-list.png" class="" title="lxc-image-list" alt="lxc-image-list">
 
 <h3 id="从镜像启动实例"><a href="#从镜像启动实例" class="headerlink" title="从镜像启动实例"></a>从镜像启动实例</h3><p>有了基础镜像之后，启动一个新的 VoIP 服务实例只需一行命令：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lxc launch voip-base test</span><br></pre></td></tr></table></figure>
+
 <p>查看实例运行状态：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lxc list</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/lxc-instance-list.png" class="" title="lxc-instance-list" alt="lxc-instance-list">
 
 <p>可以看到 VoIP 服务实例（名字为 test）正在运行，分配的内部 IP 地址是 <code>10.72.18.48</code>。</p>
 <p>可用以下命令登陆到实例中：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lxc exec test bash</span><br></pre></td></tr></table></figure>
+
 <p>查看各类服务使用的端口：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsof -i -P -n</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/listen-ports.png" class="" title="listen-ports" alt="listen-ports">
 
 <h3 id="宿主机网络配置"><a href="#宿主机网络配置" class="headerlink" title="宿主机网络配置"></a>宿主机网络配置</h3><p>让宿主机（IP 为 <code>192.168.0.107</code>）所在网络（<code>192.168.0.0/24</code>）的其他设备能够访问 VoIP 服务（IP 为 <code>10.72.18.48</code>），需要在宿主机上配置网络地址转换（NAT）：</p>
@@ -325,8 +345,10 @@
 <p>以上配置可根据实际需求更改。</p>
 <p>这里使用 <code>iptables</code> 来完成，使用 <code>exit</code> 从实例退出返回宿主机，执行：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo iptables -t nat -A PREROUTING --dst 192.168.0.107 -p udp --dport 5060 -j DNAT --to 10.72.18.48</span><br><span class="line">sudo iptables -t nat -A PREROUTING --dst 192.168.0.107 -p udp --dport 5160 -j DNAT --to 10.72.18.48</span><br><span class="line">sudo iptables -t nat -A PREROUTING --dst 192.168.0.107 -p udp --dport 10000:20000 -j DNAT --to 10.72.18.48</span><br><span class="line">sudo iptables -t nat -A PREROUTING --dst 192.168.0.107 -p tcp --dport 80 -j DNAT --to 10.72.18.48</span><br></pre></td></tr></table></figure>
+
 <p>查看 NAT 配置状态：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo iptables -t nat -v -L PREROUTING -n</span><br></pre></td></tr></table></figure>
+
 <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/iptables-nat.png" class="" title="listen-ports" alt="iptables-nat">
 
 <p>现在即可通过宿主机的 IP 访问宿主机上容器化的 VoIP 服务了。</p>

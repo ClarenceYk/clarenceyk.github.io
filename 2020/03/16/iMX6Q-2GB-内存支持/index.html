@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.3.0">
+<meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -203,7 +203,7 @@
 
       
         <p>iMX6Q SABRESD 开发板的板载 DDR 内存大小为 1GB 其配套的 codebase 也只针对 1GB 内存大小适配。我们的运行平台上配备了 2GB 内存，直接使用原有 codebase 将只能使用其中一半内存空间。以下将介绍如何让系统识别并使用 2GB 内存。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="系统启动过程现象"><a href="#系统启动过程现象" class="headerlink" title="系统启动过程现象"></a>系统启动过程现象</h2><p>系统启动过程中可看到 U-Boot 输出如下信息:</p>
 <figure class="highlight bash"><figcaption><span>终端输出</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">U-Boot 2019.10-rc1-00134-gacda5922db-dirty (Mar 16 2020 - 15:27:54 +0800)</span><br><span class="line"></span><br><span class="line">CPU:   Freescale i.MX6Q rev1.6 996 MHz (running at 792 MHz)</span><br><span class="line">CPU:   Automotive temperature grade (-40C to 125C) at 36C</span><br><span class="line">Reset cause: POR</span><br><span class="line">Model: Freescale i.MX6 Quad SABRE Smart Device Board</span><br><span class="line">Board: MX6-SabreSD</span><br><span class="line">I2C:   ready</span><br><span class="line">DRAM:  1 GiB</span><br><span class="line">PMIC:  PFUZE100 ID=0x10</span><br><span class="line">MMC:   FSL_SDHC: 0, FSL_SDHC: 3</span><br></pre></td></tr></table></figure>
@@ -225,6 +225,7 @@
 <p>可看到函数 <code>imx_ddr_size</code> 根据 <code>MMDC</code> 的配置返回内存空间大小，配置信息存储在寄存器 <code>MMDC_MDCTL</code> 中。</p>
 <h2 id="适配-2GB-内存"><a href="#适配-2GB-内存" class="headerlink" title="适配 2GB 内存"></a>适配 2GB 内存</h2><p>从前面的代码中可看到寄存器 <code>MMDC_MDCTL</code> 的地址在定义 <code>MEMCTL_BASE</code> 中，接着查看 MEMCTL_BASE 的定义，可得到如下信息:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">MEMCTL_BASE</span><br><span class="line"> |</span><br><span class="line"> v</span><br><span class="line">MMDC_P0_BASE_ADDR</span><br><span class="line"> |</span><br><span class="line"> v</span><br><span class="line">AIPS2_OFF_BASE_ADDR + 0x30000</span><br><span class="line"> |</span><br><span class="line"> v</span><br><span class="line">ATZ2_BASE_ADDR + 0x80000 + 0x30000</span><br><span class="line"> |</span><br><span class="line"> v</span><br><span class="line">AIPS2_ARB_BASE_ADDR + 0x80000 + 0x30000</span><br><span class="line"> |</span><br><span class="line"> v</span><br><span class="line">0x02100000 + 0x80000 + 0x30000 &#x3D; 0x021b0000</span><br></pre></td></tr></table></figure>
+
 <p>所以 MMDC_MDCTL 寄存器地址为 <code>0x021b0000</code>。此处代码是从寄存器中读取配置的值，那么一定会有其他的代码去配置这个寄存器的值，继续查找可发现:</p>
 <figure class="highlight c"><figcaption><span>u-boot/board/freescale/mx6sabresd/mx6sabresd.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> mx6q_dcd_table[] = &#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="number">0x021b0040</span>, <span class="number">0x00000027</span>,</span><br><span class="line">    <span class="number">0x021b0000</span>, <span class="number">0x831A0000</span>,</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 

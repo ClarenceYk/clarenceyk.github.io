@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.3.0">
+<meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -213,7 +213,7 @@
         <img src="/2020/07/11/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg" class="" title="measure_ctx_switch" alt="measure_ctx_switch">
 
 <p>尝试解答 <code>OSTEP</code> <sup><a href="#%E6%B3%A8%E9%87%8A">1</a></sup> 第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>使用的测试平台 CPU 是 Intel i5-6200U，主频 2.3GHz，操作系统是 Arch Linux，内核版本 5.7.7。</p>
 <h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>为了尽量准确地测量进程上下文切换耗时，需要有如下几个前提：</p>
@@ -225,19 +225,26 @@
 </ol>
 <h3 id="进程创建"><a href="#进程创建" class="headerlink" title="进程创建"></a>进程创建</h3><p>使用 <code>fork</code> 系统调用创建子进程：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (fork()) &#123;</span><br><span class="line"><span class="keyword">case</span> <span class="number">-1</span>: <span class="comment">// error handling</span></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span>: <span class="comment">// child process</span></span><br><span class="line">    <span class="comment">// do something in child process</span></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_SUCESS);</span><br><span class="line"><span class="keyword">default</span>: <span class="comment">// parent process</span></span><br><span class="line">    <span class="comment">// do something in parent process</span></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_SUCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <h3 id="sched-setaffinity"><a href="#sched-setaffinity" class="headerlink" title="sched_setaffinity"></a>sched_setaffinity</h3><p>使用 <code>sched_setaffinity</code> 指定进程运行在 <code>CPU3</code> 这个核心上：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CPU_NUM 3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">cpu_set_t</span> <span class="built_in">set</span>;</span><br><span class="line"></span><br><span class="line">CPU_ZERO(&amp;<span class="built_in">set</span>);</span><br><span class="line">CPU_SET(CPU_NUM, &amp;<span class="built_in">set</span>);</span><br><span class="line"><span class="keyword">if</span> (sched_setaffinity(getpid(), <span class="keyword">sizeof</span>(<span class="built_in">set</span>), &amp;<span class="built_in">set</span>) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// error handling</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// set successfully</span></span><br><span class="line"><span class="comment">// do other things</span></span><br></pre></td></tr></table></figure>
+
 <p>此操作只需在父进程 fork 子进程之前执行即可，子进程默认情况下会和父进程运行在同一个 CPU 核上。</p>
 <h3 id="内核启动参数"><a href="#内核启动参数" class="headerlink" title="内核启动参数"></a>内核启动参数</h3><p>为了保证指定的 CPU 核上只有用于测试的 2 个用户进程，需要设置 <code>isolcpus</code> 这个启动参数给内核。此参数告诉内核在调度其余用户进程时排除指定的 CPU 核心。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cmdline</span><br><span class="line"><span class="comment"># BOOT_IMAGE=... isolcpus=3 ...</span></span><br></pre></td></tr></table></figure>
+
 <p>重新启动计算机，在进入 GRUB 启动界面时选择启动项并按下 <code>e</code>，进入启动项编辑界面，找到 <code>linux</code> 为开头的一行在行尾添加如下启动参数：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ioslcpus=3 <span class="comment"># 3 代表测试平台中 CPU 的一个核的编号</span></span><br></pre></td></tr></table></figure>
+
 <p>查看设备 CPU 核心数可在进入系统后命令行执行：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lscpu</span><br></pre></td></tr></table></figure>
+
 <p>或者：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo</span><br></pre></td></tr></table></figure>
+
 <p>设置完后可以用 <code>stress</code> 命令测试一下：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo pacman -S stress</span><br><span class="line">stress --cpu 8</span><br></pre></td></tr></table></figure>
+
 <p>从下图可以看出内核在调度用户进程时绕开了 <code>CPU3</code>（从 0 开始计数）。</p>
 <img src="/2020/07/11/ostep-measure-cost-of-context-switch/stress_cpu.png" class="" title="stress_cpu" alt="stress_cpu">
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.3.0">
+<meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
@@ -208,7 +208,7 @@
 
       
         <p>软件开发中应对不同的需求有不同的解决方案，进而产生不同的软件项目。针对不同的软件项目需搭建特定的开发环境以适应各个项目的开发需要。本文以在 Linux 环境中搭建 IPPBX 开发环境为例来介绍如何搭建一个符合需求的开发环境。</p>
-<a id="more"></a>
+<span id="more"></span>
 
 <h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>整个开发环境里有如下设备：</p>
 <ol>
@@ -235,32 +235,40 @@
 <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="主系统"><a href="#主系统" class="headerlink" title="主系统"></a>主系统</h3><p>主操作系统我们选用的是 <code>Ubuntu20.04</code> 安装方法网络上很多，搜索一下即可，这里不再介绍。</p>
 <h3 id="容器中的系统"><a href="#容器中的系统" class="headerlink" title="容器中的系统"></a>容器中的系统</h3><p>本例中我们采用的是 <code>Debian10</code>，安装方法同上。值得注意的是，此系统需安装到开发机的另一块硬盘上，同时在安装前可先取下安装了主系统的硬盘，这样主系统的启动条目就不会出现在“容器”的 grub 启动选项中。此外，分区方式推荐如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sdb      8:16   0 232.9G  0 disk</span><br><span class="line">├─sdb1   8:17   0    16G  0 part [SWAP]</span><br><span class="line">└─sdb2   8:18   0 216.8G  0 part</span><br></pre></td></tr></table></figure>
+
 <p>其中交换分区根据自己的实际需求划分，剩下的空间全部作为 <code>/</code> 分区。</p>
 <h3 id="工具软件"><a href="#工具软件" class="headerlink" title="工具软件"></a>工具软件</h3><p>在主系统中安装软件包 <code>systemd-contianer</code>（此中软件包中包含 <code>systemd-nspawn</code> 工具）以及安装同步工具 <code>rsync</code>。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install systemd-contianer</span><br><span class="line">sudo apt install rsync</span><br></pre></td></tr></table></figure>
+
 <p><em>注：关于使用 <code>rsync</code> 来同步容器到新设备的方法放在<a href="/blog/2020/05/08/%E5%A4%8D%E5%88%BB-Linux-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%A6%E4%B8%80%E5%8F%B0%E8%AE%BE%E5%A4%87">另一篇文章</a>中阐述。</em></p>
 <h2 id="运行“容器”"><a href="#运行“容器”" class="headerlink" title="运行“容器”"></a>运行“容器”</h2><p>将2块装好了操作系统的硬盘都接到主板上，然后启动开发机进入 <code>BIOS</code> 将装有 Ubuntu20.04 操作系统的硬盘设置到启动序列的第一位。进入主系统后，查看硬盘分区，大致如下：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> lsblk</span></span><br><span class="line">sda      8:0    0 931.5G  0 disk</span><br><span class="line">├─sda1   8:1    0  15.3G  0 part [SWAP]</span><br><span class="line">├─sda2   8:2    0 122.1G  0 part /</span><br><span class="line">└─sda3   8:3    0 794.2G  0 part /home</span><br><span class="line">sdb      8:16   0 232.9G  0 disk</span><br><span class="line">├─sdb1   8:17   0    16G  0 part</span><br><span class="line">└─sdb2   8:18   0 216.8G  0 part</span><br></pre></td></tr></table></figure>
+
 <p>其中 <code>sda</code> 中安装了我们的主系统（Ubuntu）也就是当前运行的系统，<code>sdb</code> 中安装了“容器”的系统（Debian）。</p>
 <ul>
 <li>创建挂载点</li>
 </ul>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /mnt/debian_10</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>挂载 <code>sdb</code> 中的文件系统</li>
 </ul>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mount /dev/sdb2 /mnt/debian_10</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>使用 <code>systemd-nspawn</code> 进入“容器”环境</li>
 </ul>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo systemd-nspawn -D /mnt/debian_10 -b</span></span><br><span class="line">pawning container debian10 on /mntdebian_10.</span><br><span class="line">Press ^] three times within 1s to kill container.</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Welcome to Debian GNU/Linux 10 (buster)!</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Debian GNU/Linux 10 debian console</span><br><span class="line"></span><br><span class="line">debian login:</span><br></pre></td></tr></table></figure>
+
 <p>到此我们就进入了“容器”环境。在容器内部我们可以认为在另一个操作系统里，于是可以执行任何命令以及安装各种软件但是并不影响主系统。例如我们可以<a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_asterisk-sh">安装 Asterisk</a> 与 <a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_freepbx-sh">FreePBX</a></p>
 <ul>
 <li>退出容器</li>
 </ul>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo shutdown now</span><br></pre></td></tr></table></figure>
+
 <p>或者在 1s 内按下 <code>^]</code> 3次。（<code>control 键</code> + <code>] 键</code>）</p>
 <h2 id="容器中安装平台环境"><a href="#容器中安装平台环境" class="headerlink" title="容器中安装平台环境"></a>容器中安装平台环境</h2><h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install openssh-server</span><br><span class="line">sudo systemctl start ssh</span><br><span class="line">sudo systemctl enable ssh</span><br></pre></td></tr></table></figure>
+
 <h3 id="Asterisk"><a href="#Asterisk" class="headerlink" title="Asterisk"></a>Asterisk</h3><p>参考 Asterisk 自动安装<a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_asterisk-sh">脚本</a>。</p>
 <p><em>注意：此脚本仅在 <code>Ubuntu18.04</code> 以及 <code>Debian10</code> 中测试通过。</em></p>
 <h3 id="FreePBX"><a href="#FreePBX" class="headerlink" title="FreePBX"></a>FreePBX</h3><p>参考 FreePBX 自动安装<a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_freepbx-sh">脚本</a>。</p>
