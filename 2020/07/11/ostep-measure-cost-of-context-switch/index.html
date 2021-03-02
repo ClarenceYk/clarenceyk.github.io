@@ -234,7 +234,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cmdline</span><br><span class="line"><span class="comment"># BOOT_IMAGE=... isolcpus=3 ...</span></span><br></pre></td></tr></table></figure>
 
 <p>重新启动计算机，在进入 GRUB 启动界面时选择启动项并按下 <code>e</code>，进入启动项编辑界面，找到 <code>linux</code> 为开头的一行在行尾添加如下启动参数：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ioslcpus=3 <span class="comment"># 3 代表测试平台中 CPU 的一个核的编号</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">isolcpus=3 <span class="comment"># 3 代表测试平台中 CPU 的一个核的编号</span></span><br></pre></td></tr></table></figure>
 
 <p>查看设备 CPU 核心数可在进入系统后命令行执行：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lscpu</span><br></pre></td></tr></table></figure>
