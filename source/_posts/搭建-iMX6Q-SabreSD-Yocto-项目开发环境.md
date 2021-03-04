@@ -82,7 +82,7 @@ repo sync
 
 上面采用了 `imx-4.1.15-1.0.0_ga` 分支，可根据实际需求使用[其他分支代码](http://git.freescale.com/git/cgit.cgi/imx/fsl-arm-yocto-bsp.git/)，如下:
 
-![](/blog/2020/02/17/搭建-iMX6Q-SabreSD-Yocto-项目开发环境/fsl-arm-yocto-bsp-git.jpg)
+![](/2020/02/17/搭建-iMX6Q-SabreSD-Yocto-项目开发环境/fsl-arm-yocto-bsp-git.jpg)
 
 ## 编译构建 MFGTool
 

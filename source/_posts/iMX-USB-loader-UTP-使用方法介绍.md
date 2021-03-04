@@ -34,7 +34,7 @@ tags:
 
 所以我们将开发板的启动拨码开关拨到如下位置:
 
-![](/blog/2020/02/18/iMX-USB-loader-UTP-使用方法介绍/imx-usb-loader-boot-switch.jpg)
+![](/2020/02/18/iMX-USB-loader-UTP-使用方法介绍/imx-usb-loader-boot-switch.jpg)
 
 将开发板的 USB 接到电脑端，使用 `lsusb` 命令可看到如下信息:
 
@@ -103,7 +103,7 @@ firmware/u-boot.imx: clear_dcd,load,plug,jump header
 mkdir firmware 
 {% endcodeblock %}
 
-将[生成的镜像文件](/blog/2020/02/17/搭建-iMX6Q-SabreSD-Yocto-项目开发环境#编译构建-MFGTool)拷贝到 `firmware` 目录中后执行:
+将[生成的镜像文件](/2020/02/17/搭建-iMX6Q-SabreSD-Yocto-项目开发环境#编译构建-MFGTool)拷贝到 `firmware` 目录中后执行:
 
 {% codeblock 运行 imx_usb lang:bash %}
 ./imx_usb 

@@ -20,14 +20,14 @@ tags:
 
 ## 开启 Watchdog
 
-在[编译内核](/blog/2020/02/19/iMX6Q-SABRE-SD-开发板系统软件#Linux-内核)时开启 `Watchdog`:
+在[编译内核](/2020/02/19/iMX6Q-SABRE-SD-开发板系统软件#Linux-内核)时开启 `Watchdog`:
 
 {% codeblock ./tools/rebuild.sh lang:bash %}
 # 内核配置选项位置
 Device Drivers -> Watchdog Timer Support
 {% endcodeblock %}
 
-![](/blog/2020/02/22/Linux-系统中-Watchdog-的应用/compile-kernel-watchdog.png)
+![](/2020/02/22/Linux-系统中-Watchdog-的应用/compile-kernel-watchdog.png)
 
 *开启 `Disable watchdog shutdown on close` 这一项。*
 

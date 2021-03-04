@@ -77,7 +77,7 @@ sudo apt install systemd-contianer
 sudo apt install rsync
 ```
 
-*注：关于使用 `rsync` 来同步容器到新设备的方法放在[另一篇文章](/blog/2020/05/08/复刻-Linux-操作系统到另一台设备)中阐述。*
+*注：关于使用 `rsync` 来同步容器到新设备的方法放在[另一篇文章](/2020/05/08/复刻-Linux-操作系统到另一台设备)中阐述。*
 
 ## 运行“容器”
 
