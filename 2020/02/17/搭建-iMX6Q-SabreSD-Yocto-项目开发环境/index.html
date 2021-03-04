@@ -27,7 +27,7 @@
 <meta property="og:site_name" content="Old Stone">
 <meta property="og:description" content="本文将介绍 iMX6Q SabreSD 开发板的 Yocto Project 开发环境搭建，以及使用 Yocto 编译此开发板的烧录工具（MFGTool）镜像。">
 <meta property="og:locale">
-<meta property="og:image" content="https://clarenceyk.github.io/blog/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg">
+<meta property="og:image" content="https://clarenceyk.github.io/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg">
 <meta property="article:published_time" content="2020-02-17T03:03:41.000Z">
 <meta property="article:modified_time" content="2020-02-18T05:50:17.000Z">
 <meta property="article:author" content="uklar">
@@ -35,7 +35,7 @@
 <meta property="article:tag" content="mfgtool">
 <meta property="article:tag" content="yocto">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://clarenceyk.github.io/blog/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg">
+<meta name="twitter:image" content="https://clarenceyk.github.io/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg">
 
 <link rel="canonical" href="https://clarenceyk.github.io/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
 
@@ -246,7 +246,7 @@
 <figure class="highlight bash"><figcaption><span>同步源代码</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repo init -u git://git.freescale.com/imx/fsl-arm-yocto-bsp.git -b imx-4.1.15-1.0.0_ga</span><br><span class="line">repo sync</span><br></pre></td></tr></table></figure>
 
 <p>上面采用了 <code>imx-4.1.15-1.0.0_ga</code> 分支，可根据实际需求使用<a target="_blank" rel="noopener" href="http://git.freescale.com/git/cgit.cgi/imx/fsl-arm-yocto-bsp.git/">其他分支代码</a>，如下:</p>
-<p><img src="/blog/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg"></p>
+<p><img src="/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg"></p>
 <h2 id="编译构建-MFGTool"><a href="#编译构建-MFGTool" class="headerlink" title="编译构建 MFGTool"></a>编译构建 MFGTool</h2><p>向开发板烧录系统镜像可使用 MFGTool 完成。编译 MFGTool 镜像文件的配方分别是 <code>linux-imx-mfgtool</code> 和 <code>u-boot-mfgtool</code>。编译命令如下:</p>
 <figure class="highlight bash"><figcaption><span>编译 MFGTool</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/fsl-release-bsp</span><br><span class="line"><span class="built_in">source</span> fsl-setup-release.sh -b build-mfgtools -e x11</span><br><span class="line">bitbake fsl-image-mfgtool-initramfs</span><br></pre></td></tr></table></figure>
 

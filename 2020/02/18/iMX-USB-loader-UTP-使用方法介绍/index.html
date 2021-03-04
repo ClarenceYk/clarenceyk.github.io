@@ -27,7 +27,7 @@
 <meta property="og:site_name" content="Old Stone">
 <meta property="og:description" content="本文将介绍 Freescale 提供的工具软件 iMX USB loader 以及 UTP 的使用方法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://clarenceyk.github.io/blog/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/imx-usb-loader-boot-switch.jpg">
+<meta property="og:image" content="https://clarenceyk.github.io/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/imx-usb-loader-boot-switch.jpg">
 <meta property="article:published_time" content="2020-02-18T06:04:49.000Z">
 <meta property="article:modified_time" content="2020-02-18T09:59:03.000Z">
 <meta property="article:author" content="uklar">
@@ -36,7 +36,7 @@
 <meta property="article:tag" content="imx_usb">
 <meta property="article:tag" content="utp_com">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://clarenceyk.github.io/blog/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/imx-usb-loader-boot-switch.jpg">
+<meta name="twitter:image" content="https://clarenceyk.github.io/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/imx-usb-loader-boot-switch.jpg">
 
 <link rel="canonical" href="https://clarenceyk.github.io/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/">
 
@@ -240,7 +240,7 @@
 <p><em><strong>Freescale</strong></em> – <em>Android User Guide</em></p>
 </blockquote>
 <p>所以我们将开发板的启动拨码开关拨到如下位置:</p>
-<p><img src="/blog/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/imx-usb-loader-boot-switch.jpg"></p>
+<p><img src="/2020/02/18/iMX-USB-loader-UTP-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D/imx-usb-loader-boot-switch.jpg"></p>
 <p>将开发板的 USB 接到电脑端，使用 <code>lsusb</code> 命令可看到如下信息:</p>
 <figure class="highlight bash"><figcaption><span>查看 USB 设备信息</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lsusb</span><br><span class="line"><span class="comment"># ......</span></span><br><span class="line"><span class="comment"># Bus 001 Device 003: ID 15a2:0054 Freescale Semiconductor, Inc. i.MX 6Dual/6Quad SystemOnChip in RecoveryMode</span></span><br><span class="line"><span class="comment"># ......</span></span><br></pre></td></tr></table></figure>
 
@@ -279,7 +279,7 @@
 <p>创建 <code>firmware</code> 目录:</p>
 <figure class="highlight bash"><figcaption><span>创建目录</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir firmware </span><br></pre></td></tr></table></figure>
 
-<p>将<a href="/blog/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83#%E7%BC%96%E8%AF%91%E6%9E%84%E5%BB%BA-MFGTool">生成的镜像文件</a>拷贝到 <code>firmware</code> 目录中后执行:</p>
+<p>将<a href="/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83#%E7%BC%96%E8%AF%91%E6%9E%84%E5%BB%BA-MFGTool">生成的镜像文件</a>拷贝到 <code>firmware</code> 目录中后执行:</p>
 <figure class="highlight bash"><figcaption><span>运行 imx_usb</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./imx_usb </span><br></pre></td></tr></table></figure>
 
 <p>等待半分钟左右，可通过串口看到输出的启动信息:</p>

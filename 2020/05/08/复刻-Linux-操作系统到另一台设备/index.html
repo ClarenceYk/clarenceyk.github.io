@@ -206,7 +206,7 @@
 
 <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>需要注意的是源设备和目标设备之间的 CPU 架构需<strong>保持一致</strong>。</p>
 <h3 id="硬件"><a href="#硬件" class="headerlink" title="硬件"></a>硬件</h3><ol>
-<li>一台被复刻的设备作为源设备（参考<a href="/blog/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83">搭建 IPPBX 基础开发环境</a>）</li>
+<li>一台被复刻的设备作为源设备（参考<a href="/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83">搭建 IPPBX 基础开发环境</a>）</li>
 <li>一台新设备作为目标设备</li>
 <li>一个 Linux USB 启动盘（制作方法网络上很多这里不多作介绍，我制作的是 <code>Debian10</code> USB 启动盘）</li>
 </ol>
@@ -214,7 +214,7 @@
 <li>rsync</li>
 <li>openssh-server（可选）</li>
 </ol>
-<h2 id="配置源设备"><a href="#配置源设备" class="headerlink" title="配置源设备"></a>配置源设备</h2><p>在<a href="/blog/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83">搭建 IPPBX 基础开发环境</a>一文中我们已经搭建好了一个开发环境，其中的 <code>/dev/sdb2</code> 设备里包含了一个完整的用于生产环境的操作系统。现在我们将 <code>/dev/sdb2</code> 用作拷贝源。</p>
+<h2 id="配置源设备"><a href="#配置源设备" class="headerlink" title="配置源设备"></a>配置源设备</h2><p>在<a href="/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83">搭建 IPPBX 基础开发环境</a>一文中我们已经搭建好了一个开发环境，其中的 <code>/dev/sdb2</code> 设备里包含了一个完整的用于生产环境的操作系统。现在我们将 <code>/dev/sdb2</code> 用作拷贝源。</p>
 <h3 id="源设备网络"><a href="#源设备网络" class="headerlink" title="源设备网络"></a>源设备网络</h3><p>简单的方法是将源设备接到路由器上，由路由器自动分配 IP 地址。也可以采用和目标设备直接连接的方式，则需要自己配置静态 IP 地址。</p>
 <h3 id="挂载-dev-sdb2"><a href="#挂载-dev-sdb2" class="headerlink" title="挂载 /dev/sdb2"></a>挂载 <code>/dev/sdb2</code></h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /mnt/debian_10</span><br><span class="line">sudo mount /dev/sdb2 /mnt/debian_10</span><br></pre></td></tr></table></figure>
 
