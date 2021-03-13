@@ -1,7 +1,7 @@
 ---
 title: 使用 QEMU 启动 ARM aarch64 架构 Ubuntu 虚拟机
 date: 2021-03-01 09:35:03
-updated: 2021-03-03 11:15:19
+updated: 2021-03-13 15:51:43
 tags:
 - 操作方法
 - QEMU
