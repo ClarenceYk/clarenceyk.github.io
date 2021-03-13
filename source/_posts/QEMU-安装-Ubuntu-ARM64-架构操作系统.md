@@ -124,7 +124,8 @@ sudo qemu-system-aarch64 -nographic -machine virt,gic-version=max -m 1G -cpu max
 -device virtio-net-pci,netdev=mynet0,mac=$(qemu-mac-hasher.py ubuntu1604-arm64) \
 -drive file=ubuntu-image.img,if=none,id=drive0,cache=writeback \
 -device virtio-blk,drive=drive0,bootindex=0 \
--drive file=flash0.img,format=raw,if=pflash -drive file=flash1.img,format=raw,if=pflash
+-drive file=flash0.img,format=raw,if=pflash -drive file=flash1.img,format=raw,if=pflash \
+-device virtio-rng-pci
 ```
 
 以上命令指定 qemu 使用 tap 设备作为虚拟机网络接口并且指定使用刚刚创建的 `tap0` 接口。
