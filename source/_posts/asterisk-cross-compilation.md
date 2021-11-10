@@ -1,7 +1,7 @@
 ---
 title: Asterisk 交叉编译
 date: 2021-11-02 10:06:11
-updated: 2021-11-02 10:06:11
+updated: 2021-11-10 14:37:16
 tags:
 - Asterisk
 - Cross Compilation
@@ -317,3 +317,13 @@ make && make install
 ```
 
 > Tips: `--with-asterisk-includes` 参数指定 Asterisk 源代码路径中的头文件。
+
+## 库安装
+
+最后，将前面编译出的所有动态链接库（除 asterisk 以及 asterisk-g72x 外）都放置到 Asterisk 的运行目录中。
+
+## 附录
+
+将以上描述的过程整理成一个 Makefile 文件，如下：
+
+{% gist 0608def14b00121c09490091db93a5df makefile_mipsel %}
