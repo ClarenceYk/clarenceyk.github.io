@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="ROSR 是『RISC-V OS using Rust』的缩写，是由 Stephen Marz 在他的系列博客中提供的操作系统开发教程。 本章描述使用汇编语言编写引导程序为 Rust 语言创建执行环境。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ROSR 学习笔记 - 第1章">
+<meta property="og:url" content="https://clarenceyk.github.io/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC1%E7%AB%A0/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="ROSR 是『RISC-V OS using Rust』的缩写，是由 Stephen Marz 在他的系列博客中提供的操作系统开发教程。 本章描述使用汇编语言编写引导程序为 Rust 语言创建执行环境。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-11-10T03:30:00.000Z">
+<meta property="article:modified_time" content="2022-11-10T09:06:01.954Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="Rust">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC1%E7%AB%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>ROSR 学习笔记 - 第1章 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC1%E7%AB%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ROSR 学习笔记 - 第1章
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-11-10 11:30:00 / Modified: 17:06:01" itemprop="dateCreated datePublished" datetime="2022-11-10T11:30:00+08:00">2022-11-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>ROSR 是『RISC-V OS using Rust』的缩写，是由 <a target="_blank" rel="noopener" href="https://osblog.stephenmarz.com/">Stephen Marz</a> 在他的系列博客中提供的操作系统开发教程。</p>
+<p>本章描述使用汇编语言编写引导程序为 Rust 语言创建执行环境。</p>
+<span id="more"></span>
+
+<h2 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h2><ol>
+<li>将源码编译出目标文件</li>
+<li>使用 linker script 通过链接器将目标文件链接成 ELF 文件</li>
+<li>QEMU 使用 ELF 文件启动</li>
+<li>QEMU 根据 ELF 文件指定的内存地址将代码段、数据段等放置到内存中相应的位置</li>
+<li>QEMU 模拟器开始执行程序</li>
+</ol>
+<h2 id="QEMU-内存映射"><a href="#QEMU-内存映射" class="headerlink" title="QEMU 内存映射"></a>QEMU 内存映射</h2><p>查看 <a target="_blank" rel="noopener" href="https://github.com/qemu/qemu/blob/master/hw/riscv/virt.c">qemu/hw/riscv/virt.c</a> 文件可知：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> MemMapEntry virt_memmap[] = &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    [VIRT_DRAM] =         &#123; <span class="number">0x80000000</span>,           <span class="number">0x0</span> &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>QEMU 从内存地址 <code>0x80000000</code> 开始执行程序，所以我们需要把代码链接到此地址上，这一点从第0章的 linker script 也能看出。</p>
+<h2 id="启动并执行-Rust-程序"><a href="#启动并执行-Rust-程序" class="headerlink" title="启动并执行 Rust 程序"></a>启动并执行 Rust 程序</h2><p>分为 3 个步骤：</p>
+<ol>
+<li>选择用于启动的 CPU （一般选择 id 为 #0 的）</li>
+<li>初始化 BSS 段为 0</li>
+<li>跳转 Rust</li>
+</ol>
+<h3 id="选择启动-CPU"><a href="#选择启动-CPU" class="headerlink" title="选择启动 CPU"></a>选择启动 CPU</h3><p>选择一个 CPU 来执行启动流程，原因在于在这个阶段我们并不想去处理并发或者资源竞争等问题。通过 <a target="_blank" rel="noopener" href="https://github.com/riscv/riscv-isa-manual">RISC-V 特权级规范手册</a> 的 3.1.5 节可知，我们能使用 <code>mhartid</code> 寄存器来确定当前指令正在被哪个 CPU 执行。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">	csrr	t0, mhartid</span><br><span class="line">	bnez	t0, 3f</span><br><span class="line"></span><br><span class="line">3:</span><br><span class="line">	wfi</span><br><span class="line">	j	3b</span><br></pre></td></tr></table></figure>
+
+<p>这段代码让 id#0 之外的 CPU 都跳转到 <code>wfi</code>（等待中断） 指令处。</p>
+<h3 id="初始化-BSS-段"><a href="#初始化-BSS-段" class="headerlink" title="初始化 BSS 段"></a>初始化 BSS 段</h3><p>确定好由哪个 CPU 执行启动流程后，就需要使用它将 BSS 段初始化清零：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">	la        a0, _bss_start</span><br><span class="line">	la        a1, _bss_end</span><br><span class="line">	bgeu      a0, a1, 2f</span><br><span class="line">1:</span><br><span class="line">	sd        zero, (a0)</span><br><span class="line">	addi      a0, a0, 8</span><br><span class="line">	bltu      a0, a1, 1b</span><br></pre></td></tr></table></figure>
+
+<p>其中标号 <code>_bss_start</code> 以及 <code>_bss_end</code> 由 linker script 确定。</p>
+<h3 id="跳转-Rust"><a href="#跳转-Rust" class="headerlink" title="跳转 Rust"></a>跳转 Rust</h3><p>在跳转执行 Rust 代码前我们必须为 Rust 准备执行环境，也就是设置好栈指针（SP）以及异常程序计数器（mepc）然后利用中断返回（mret）让 CPU 跳转到主函数入口（kmain）。</p>
+<p>但是此时的 CPU 并没有被中断，要使用中断返回就必须模拟一个中断的场景使得 mret 指令能够正确执行。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">la        sp, _stack</span><br><span class="line">li        t0, (0b11 &lt;&lt; 11) | (1 &lt;&lt; 7) | (1 &lt;&lt; 3)</span><br><span class="line">csrw      mstatus, t0</span><br><span class="line">la        t1, kmain</span><br><span class="line">csrw      mepc, t1</span><br><span class="line">la        t2, asm_trap_vector</span><br><span class="line">csrw      mtvec, t2</span><br><span class="line">li        t3, (1 &lt;&lt; 3) | (1 &lt;&lt; 7) | (1 &lt;&lt; 11)</span><br><span class="line">csrw      mie, t3</span><br></pre></td></tr></table></figure>
+
+<p>上面这段代码中的第1行就是设置 SP 寄存器，同样 <code>_statck</code> 符号由 linker script 提供。</p>
+<p>第2、3行将 <code>mstatus</code> 寄存器的 <code>MIE</code>、<code>MPIE</code>、<code>MPP</code> 位分别置 <code>b&#39;1</code>、<code>b&#39;1</code> 以及 <code>b&#39;11</code>，使得 mret 执行后 <code>MIE</code> 为 <code>b&#39;1</code>，<code>MPIE</code> 为 <code>b&#39;1</code>，<code>MPP</code> 为 <code>b&#39;00</code>，并且 CPU 处于 M 态。</p>
+<p>第4、5行将 Rust 程序的入口写入 <code>mepc</code> 寄存器，当 mret 执行后 CPU 就会跳转到此处。</p>
+<p>第6、7行设置陷阱向量基地址，暂时不用关心。</p>
+<p>第8、9行开启软中断、时钟中断、外部中断。</p>
+<h3 id="Rust-Code"><a href="#Rust-Code" class="headerlink" title="Rust Code"></a>Rust Code</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Steve Operating System</span></span><br><span class="line"><span class="comment">// Stephen Marz</span></span><br><span class="line"><span class="comment">// 21 Sep 2019</span></span><br><span class="line"><span class="meta">#![no_std]</span></span><br><span class="line"><span class="meta">#![feature(panic_info_message)]</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> core::arch::asm;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ///////////////////////////////////</span></span><br><span class="line"><span class="comment">// / RUST MACROS</span></span><br><span class="line"><span class="comment">// ///////////////////////////////////</span></span><br><span class="line"><span class="meta">#[macro_export]</span></span><br><span class="line"><span class="built_in">macro_rules!</span> print &#123;</span><br><span class="line">    ($($args:tt)+) =&gt; &#123;&#123;&#125;&#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#[macro_export]</span></span><br><span class="line"><span class="built_in">macro_rules!</span> println</span><br><span class="line">&#123;</span><br><span class="line">	() =&gt; (&#123;</span><br><span class="line">		<span class="built_in">print!</span>(<span class="string">&quot;\r\n&quot;</span>)</span><br><span class="line">	&#125;);</span><br><span class="line">	($fmt:expr) =&gt; (&#123;</span><br><span class="line">		<span class="built_in">print!</span>(<span class="built_in">concat!</span>($fmt, <span class="string">&quot;\r\n&quot;</span>))</span><br><span class="line">	&#125;);</span><br><span class="line">	($fmt:expr, $($args:tt)+) =&gt; (&#123;</span><br><span class="line">		<span class="built_in">print!</span>(<span class="built_in">concat!</span>($fmt, <span class="string">&quot;\r\n&quot;</span>), $($args)+)</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ///////////////////////////////////</span></span><br><span class="line"><span class="comment">// / LANGUAGE STRUCTURES / FUNCTIONS</span></span><br><span class="line"><span class="comment">// ///////////////////////////////////</span></span><br><span class="line"><span class="meta">#[no_mangle]</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">fn</span> <span class="title">eh_personality</span></span>() &#123;&#125;</span><br><span class="line"><span class="meta">#[panic_handler]</span></span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">panic</span></span>(info: &amp;core::panic::PanicInfo) -&gt; ! &#123;</span><br><span class="line">    <span class="built_in">print!</span>(<span class="string">&quot;Aborting: &quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">let</span> <span class="literal">Some</span>(p) = info.location() &#123;</span><br><span class="line">        <span class="built_in">println!</span>(</span><br><span class="line">            <span class="string">&quot;line &#123;&#125;, file &#123;&#125;: &#123;&#125;&quot;</span>,</span><br><span class="line">            p.line(),</span><br><span class="line">            p.file(),</span><br><span class="line">            info.message().unwrap()</span><br><span class="line">        );</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;no information available.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    abort();</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#[no_mangle]</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">fn</span> <span class="title">abort</span></span>() -&gt; ! &#123;</span><br><span class="line">    <span class="keyword">loop</span> &#123;</span><br><span class="line">        <span class="keyword">unsafe</span> &#123;</span><br><span class="line">            <span class="comment">// The asm! syntax has changed in Rust.</span></span><br><span class="line">            <span class="comment">// For the old, you can use llvm_asm!, but the</span></span><br><span class="line">            <span class="comment">// new syntax kicks ass--when we actually get to use it.</span></span><br><span class="line">            asm!(<span class="string">&quot;wfi&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#[no_mangle]</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">fn</span> <span class="title">kmain</span></span>() &#123;</span><br><span class="line">    <span class="comment">// Main should initialize all sub-systems and get</span></span><br><span class="line">    <span class="comment">// ready to start scheduling. The last thing this</span></span><br><span class="line">    <span class="comment">// should do is start the timer.</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的代码和作者原先的代码有如下差异：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt; #![feature(panic_info_message,asm)]</span><br><span class="line">---</span><br><span class="line">&gt; #![feature(panic_info_message)]</span><br><span class="line">&gt;</span><br><span class="line">&gt; use core::arch::asm;</span><br></pre></td></tr></table></figure>
+
+<p>大概因为目前的 Rust 编译器以及提供了对 <code>asm</code> 稳定支持。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RISC-V/" rel="tag"># RISC-V</a>
+              <a href="/tags/OS/" rel="tag"># OS</a>
+              <a href="/tags/Rust/" rel="tag"># Rust</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC0%E7%AB%A0/" rel="prev" title="ROSR 学习笔记 - 第0章">
+      <i class="fa fa-chevron-left"></i> ROSR 学习笔记 - 第0章
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E8%B7%AF"><span class="nav-number">1.</span> <span class="nav-text">基本思路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QEMU-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="nav-number">2.</span> <span class="nav-text">QEMU 内存映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E5%B9%B6%E6%89%A7%E8%A1%8C-Rust-%E7%A8%8B%E5%BA%8F"><span class="nav-number">3.</span> <span class="nav-text">启动并执行 Rust 程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E5%90%AF%E5%8A%A8-CPU"><span class="nav-number">3.1.</span> <span class="nav-text">选择启动 CPU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-BSS-%E6%AE%B5"><span class="nav-number">3.2.</span> <span class="nav-text">初始化 BSS 段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%B3%E8%BD%AC-Rust"><span class="nav-number">3.3.</span> <span class="nav-text">跳转 Rust</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Rust-Code"><span class="nav-number">3.4.</span> <span class="nav-text">Rust Code</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

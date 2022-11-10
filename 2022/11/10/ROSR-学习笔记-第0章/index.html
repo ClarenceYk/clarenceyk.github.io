@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="ROSR 是『RISC-V OS using Rust』的缩写，是由 Stephen Marz 在他的系列博客中提供的操作系统开发教程。 本章描述实验环境的搭建。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ROSR 学习笔记 - 第0章">
+<meta property="og:url" content="https://clarenceyk.github.io/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC0%E7%AB%A0/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="ROSR 是『RISC-V OS using Rust』的缩写，是由 Stephen Marz 在他的系列博客中提供的操作系统开发教程。 本章描述实验环境的搭建。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-11-10T02:04:39.000Z">
+<meta property="article:modified_time" content="2022-11-10T02:04:39.000Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="Rust">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC0%E7%AB%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>ROSR 学习笔记 - 第0章 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC0%E7%AB%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ROSR 学习笔记 - 第0章
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-11-10 10:04:39" itemprop="dateCreated datePublished" datetime="2022-11-10T10:04:39+08:00">2022-11-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>ROSR 是『RISC-V OS using Rust』的缩写，是由 <a target="_blank" rel="noopener" href="https://osblog.stephenmarz.com/">Stephen Marz</a> 在他的系列博客中提供的操作系统开发教程。</p>
+<p>本章描述实验环境的搭建。</p>
+<span id="more"></span>
+
+<h2 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h2><p>现在 Rust 编译器已经增加了对 RISC-V 的支持，所以搭建开发环境变得容易了很多：</p>
+<ol>
+<li>安装 rustup</li>
+<li>配置 Rust 编译环境</li>
+<li>安装 RISC-V 交叉编译工具链</li>
+<li>安装 QEMU 的 RISC-V 模拟环境</li>
+</ol>
+<p>在 Ubuntu 20.04 上搭建开发环境的具体步骤如下：</p>
+<h3 id="安装-rustup"><a href="#安装-rustup" class="headerlink" title="安装 rustup"></a>安装 rustup</h3><p>参考 Rust 官方文档。</p>
+<h3 id="配置-Rust-编译环境"><a href="#配置-Rust-编译环境" class="headerlink" title="配置 Rust 编译环境"></a>配置 Rust 编译环境</h3><p>命令行执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rustup default nightly</span><br><span class="line">rustup target add riscv64gc-unknown-none-elf</span><br><span class="line">cargo install cargo-binutils</span><br></pre></td></tr></table></figure>
+
+<p>使用 nightly 构建是因为需要使用一些 Rust 的稳定版本中没有的语言特性 <code>#![features]</code>。</p>
+<h3 id="安装-RISC-V-交叉编译工具链"><a href="#安装-RISC-V-交叉编译工具链" class="headerlink" title="安装 RISC-V 交叉编译工具链"></a>安装 RISC-V 交叉编译工具链</h3><p>使用 ubuntu 软件仓提供的工具链：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install gcc-riscv64-unknown-elf</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装-QEMU-的-RISC-V-模拟环境"><a href="#安装-QEMU-的-RISC-V-模拟环境" class="headerlink" title="安装 QEMU 的 RISC-V 模拟环境"></a>安装 QEMU 的 RISC-V 模拟环境</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install qemu-system-riscv64</span><br></pre></td></tr></table></figure>
+
+<h2 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cargo new myos --lib</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>Cargo.toml</code> 项目配置文件中增加：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[lib]</span></span><br><span class="line"><span class="attr">crate-type</span> = [<span class="string">&quot;staticlib&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>创建 <code>.cargo/config</code> 文件：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[build]</span></span><br><span class="line"><span class="attr">target</span> = <span class="string">&quot;riscv64gc-unknown-none-elf&quot;</span></span><br><span class="line"><span class="attr">rustflags</span> = [<span class="string">&#x27;-Clink-arg=-Tsrc/lds/virt.lds&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="section">[target.riscv64gc-unknown-none-elf]</span></span><br><span class="line"><span class="attr">runner</span> = <span class="string">&quot;qemu-system-riscv64 -machine virt -cpu rv64 -smp 4 -m 128M -drive if=none,format=raw,file=hdd.dsk,id=foo -device virtio-blk-device,scsi=off,drive=foo -nographic -serial mon:stdio -bios none -device virtio-rng-device -device virtio-gpu-device -device virtio-net-device -device virtio-tablet-device -device virtio-keyboard-device -kernel &quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 <code>src/lds/</code> 目录中创建 linker script <code>virt.lds</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">OUTPUT_ARCH( &quot;riscv&quot; )</span><br><span class="line"></span><br><span class="line">ENTRY( _start )</span><br><span class="line"></span><br><span class="line">MEMORY</span><br><span class="line">&#123;</span><br><span class="line">    ram   (wxa!ri) : ORIGIN = 0x80000000, LENGTH = 128M</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PHDRS</span><br><span class="line">&#123;</span><br><span class="line">    text PT_LOAD;</span><br><span class="line">    data PT_LOAD;</span><br><span class="line">    bss PT_LOAD;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SECTIONS</span><br><span class="line">&#123;</span><br><span class="line">    .text : &#123;</span><br><span class="line">    PROVIDE(_text_start = .);</span><br><span class="line">    *(.text.init) *(.text .text.*)</span><br><span class="line">    PROVIDE(_text_end = .);</span><br><span class="line">    &#125; &gt;ram AT&gt;ram :text</span><br><span class="line">    PROVIDE(_global_pointer = .);</span><br><span class="line">    .rodata : &#123;</span><br><span class="line">    PROVIDE(_rodata_start = .);</span><br><span class="line">    *(.rodata .rodata.*)</span><br><span class="line">    PROVIDE(_rodata_end = .);</span><br><span class="line">    &#125; &gt;ram AT&gt;ram :text</span><br><span class="line"></span><br><span class="line">    .data : &#123;</span><br><span class="line">    . = ALIGN(4096);</span><br><span class="line">    PROVIDE(_data_start = .);</span><br><span class="line">    *(.sdata .sdata.*) *(.data .data.*)</span><br><span class="line">    PROVIDE(_data_end = .);</span><br><span class="line">    &#125; &gt;ram AT&gt;ram :data</span><br><span class="line"></span><br><span class="line">    .bss :&#123;</span><br><span class="line">    PROVIDE(_bss_start = .);</span><br><span class="line">    *(.sbss .sbss.*) *(.bss .bss.*)</span><br><span class="line">    PROVIDE(_bss_end = .);</span><br><span class="line">    &#125; &gt;ram AT&gt;ram :bss</span><br><span class="line"></span><br><span class="line">    PROVIDE(_memory_start = ORIGIN(ram));</span><br><span class="line">    PROVIDE(_stack = _bss_end + 0x80000);</span><br><span class="line">    PROVIDE(_memory_end = ORIGIN(ram) + LENGTH(ram));</span><br><span class="line">    PROVIDE(_heap_start = _stack);</span><br><span class="line">    PROVIDE(_heap_size = _memory_end - _stack);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建 makefile：</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#####</span></span><br><span class="line"><span class="comment">## BUILD</span></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line">CC=riscv64-unknown-elf-g++</span><br><span class="line">CFLAGS=-Wall -Wextra -pedantic -Wextra -O0 -g -std=c++17</span><br><span class="line">CFLAGS+=-static -ffreestanding -nostdlib -fno-rtti -fno-exceptions</span><br><span class="line">CFLAGS+=-march=rv64gc -mabi=lp64d</span><br><span class="line">INCLUDES=</span><br><span class="line">LINKER_SCRIPT=-Tsrc/lds/virt.lds</span><br><span class="line">TYPE=debug</span><br><span class="line">RUST_TARGET=./target/riscv64gc-unknown-none-elf/<span class="variable">$(TYPE)</span></span><br><span class="line">LIBS=-L<span class="variable">$(RUST_TARGET)</span></span><br><span class="line">SOURCES_ASM=<span class="variable">$(<span class="built_in">wildcard</span> src/asm/*.S)</span></span><br><span class="line">LIB=-lsos -lgcc</span><br><span class="line">OUT=os.elf</span><br><span class="line"></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line"><span class="comment">## QEMU</span></span><br><span class="line"><span class="comment">#####</span></span><br><span class="line">QEMU=qemu-system-riscv64</span><br><span class="line">MACH=virt</span><br><span class="line">CPU=rv64</span><br><span class="line">CPUS=4</span><br><span class="line">MEM=128M</span><br><span class="line">DRIVE=hdd.dsk</span><br><span class="line"></span><br><span class="line"><span class="section">all:</span></span><br><span class="line">    cargo build</span><br><span class="line">    <span class="variable">$(CC)</span> <span class="variable">$(CFLAGS)</span> <span class="variable">$(LINKER_SCRIPT)</span> <span class="variable">$(INCLUDES)</span> -o <span class="variable">$(OUT)</span> <span class="variable">$(SOURCES_ASM)</span> <span class="variable">$(LIBS)</span> <span class="variable">$(LIB)</span></span><br><span class="line">    </span><br><span class="line"><span class="section">run: all</span></span><br><span class="line">    <span class="variable">$(QEMU)</span> -machine <span class="variable">$(MACH)</span> -cpu <span class="variable">$(CPU)</span> -smp <span class="variable">$(CPUS)</span> -m <span class="variable">$(MEM)</span>  -nographic -serial mon:stdio -bios none -kernel <span class="variable">$(OUT)</span> -drive if=none,format=raw,file=<span class="variable">$(DRIVE)</span>,id=foo -device virtio-blk-device,scsi=off,drive=foo</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta"><span class="meta-keyword">.PHONY</span>: clean</span></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">    cargo clean</span><br><span class="line">    rm -f <span class="variable">$(OUT)</span></span><br></pre></td></tr></table></figure>
+
+<p>创建硬盘镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dd <span class="keyword">if</span>=/dev/zero of=hdd.dsk count=32 bs=1M</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RISC-V/" rel="tag"># RISC-V</a>
+              <a href="/tags/OS/" rel="tag"># OS</a>
+              <a href="/tags/Rust/" rel="tag"># Rust</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/02/asterisk-cross-compilation/" rel="prev" title="Asterisk 交叉编译">
+      <i class="fa fa-chevron-left"></i> Asterisk 交叉编译
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC1%E7%AB%A0/" rel="next" title="ROSR 学习笔记 - 第1章">
+      ROSR 学习笔记 - 第1章 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">开发环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-rustup"><span class="nav-number">1.1.</span> <span class="nav-text">安装 rustup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE-Rust-%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83"><span class="nav-number">1.2.</span> <span class="nav-text">配置 Rust 编译环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-RISC-V-%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE"><span class="nav-number">1.3.</span> <span class="nav-text">安装 RISC-V 交叉编译工具链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-QEMU-%E7%9A%84-RISC-V-%E6%A8%A1%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="nav-number">1.4.</span> <span class="nav-text">安装 QEMU 的 RISC-V 模拟环境</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">创建工程</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
