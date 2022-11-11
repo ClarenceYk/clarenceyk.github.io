@@ -29,7 +29,7 @@
 <meta property="og:locale">
 <meta property="og:image" content="https://clarenceyk.github.io/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/ns16550a.png">
 <meta property="article:published_time" content="2022-11-11T02:38:40.000Z">
-<meta property="article:modified_time" content="2022-11-11T06:44:19.428Z">
+<meta property="article:modified_time" content="2022-11-11T06:58:15.226Z">
 <meta property="article:author" content="uklar">
 <meta property="article:tag" content="RISC-V">
 <meta property="article:tag" content="OS">
@@ -189,7 +189,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-11-11 10:38:40 / Modified: 14:44:19" itemprop="dateCreated datePublished" datetime="2022-11-11T10:38:40+08:00">2022-11-11</time>
+              <time title="Created: 2022-11-11 10:38:40 / Modified: 14:58:15" itemprop="dateCreated datePublished" datetime="2022-11-11T10:38:40+08:00">2022-11-11</time>
             </span>
 
           
@@ -230,7 +230,7 @@
 <p>10、11行，开启收中断、开启 FIFO</p>
 <p>13~18行，设置波特率 115200（因为是模拟的 UART 所以波特率设置不影响）</p>
 <p>根据 NS16550A 芯片资料，其内部有一个全局时钟频率为 22.729 MHz（22729000 Hz），所以要设置 115200 波特率： divisor = 22729000 / (115200 * 16) = 12。</p>
-<p>并且在设置波特率之前需把 LCR 寄存器的 DLAB 位置1，设置完后在置0。</p>
+<p>并且在设置波特率之前需把 LCR 寄存器的 DLAB 位置1，设置完后再置0。</p>
 <h3 id="增加-put-方法"><a href="#增加-put-方法" class="headerlink" title="增加 put 方法"></a>增加 put 方法</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span> UartDriver &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="function"><span class="keyword">fn</span> <span class="title">put</span></span>(&amp;<span class="keyword">self</span>, c: <span class="built_in">u8</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> ptr = <span class="keyword">self</span>.base_address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="built_in">u8</span>;</span><br><span class="line">        <span class="keyword">unsafe</span> &#123;</span><br><span class="line">            ptr.add(<span class="number">0</span>).write_volatile(c);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="增加-get-方法"><a href="#增加-get-方法" class="headerlink" title="增加 get 方法"></a>增加 get 方法</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span> UartDriver &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="function"><span class="keyword">fn</span> <span class="title">get</span></span>(&amp;<span class="keyword">self</span>) -&gt; <span class="built_in">Option</span>&lt;<span class="built_in">u8</span>&gt; &#123;</span><br><span class="line">        <span class="keyword">let</span> ptr = <span class="keyword">self</span>.base_address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="built_in">u8</span>;</span><br><span class="line">        <span class="keyword">unsafe</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> ptr.add(<span class="number">5</span>).read_volatile() &amp; <span class="number">1</span> == <span class="number">0</span> &#123;</span><br><span class="line">                <span class="literal">None</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="literal">Some</span>(ptr.add(<span class="number">0</span>).read_volatile())</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
