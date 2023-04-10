@@ -3,19 +3,19 @@ name: Pages
 on:
   push:
     branches:
-      - source  # default branch
+      - source # default branch
 
 jobs:
   pages:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v2
         with:
-          submodules: recursive
-      - name: Use Node.js 15.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: '15.x'
+          node-version: "18"
       - name: Cache NPM dependencies
         uses: actions/cache@v2
         with:
@@ -32,4 +32,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          publish_branch: master  # deploying branch
+          publish_branch: master # deploying branch
