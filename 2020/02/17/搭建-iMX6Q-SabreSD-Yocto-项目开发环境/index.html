@@ -225,7 +225,7 @@
 <ol start="0">
 <li>在 <code>home</code> 目录下创建一个 <code>bin</code> 目录。</li>
 </ol>
-<figure class="highlight bash"><figcaption><span>安装 repo</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/bin</span><br><span class="line">curl http://commondatastorage.googleapis.com/git-repo-downloads/repo &gt; ~/bin/repo</span><br><span class="line">chmod a+x ~/bin/repo</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>安装 repo</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> ~/bin</span><br><span class="line">curl http://commondatastorage.googleapis.com/git-repo-downloads/repo &gt; ~/bin/repo</span><br><span class="line"><span class="built_in">chmod</span> a+x ~/bin/repo</span><br></pre></td></tr></table></figure>
 
 <ol>
 <li>将下面2行加入 <code>.bashrc</code> 文件末尾，确保 <code>~/bin</code> 在 <code>PATH</code> 变量中。</li>
@@ -239,11 +239,11 @@
 <li>一些用于配置开发环境的脚本</li>
 </ul>
 <p>以下步骤创建了一个 <code>fsl-release-bsp</code> 目录用于构建 Yocto 项目:</p>
-<figure class="highlight bash"><figcaption><span>创建目录</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir fsl-release-bsp</span><br><span class="line"><span class="built_in">cd</span> fsl-release-bsp</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>创建目录</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> fsl-release-bsp</span><br><span class="line"><span class="built_in">cd</span> fsl-release-bsp</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight bash"><figcaption><span>配置 git 信息</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># git config --global user.name &quot;Your Name&quot;</span></span><br><span class="line">git config --global user.name <span class="string">&quot;ClarenceYk&quot;</span></span><br><span class="line"><span class="comment"># git config --global user.email &quot;Your Email&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;xxx@xxx.com&quot;</span></span><br><span class="line">git config --list</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><figcaption><span>同步源代码</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repo init -u git://git.freescale.com/imx/fsl-arm-yocto-bsp.git -b imx-4.1.15-1.0.0_ga</span><br><span class="line">repo sync</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>同步源代码</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repo init -u git://git.freescale.com/imx/fsl-arm-yocto-bsp.git -b imx-4.1.15-1.0.0_ga</span><br><span class="line">repo <span class="built_in">sync</span></span><br></pre></td></tr></table></figure>
 
 <p>上面采用了 <code>imx-4.1.15-1.0.0_ga</code> 分支，可根据实际需求使用<a target="_blank" rel="noopener" href="http://git.freescale.com/git/cgit.cgi/imx/fsl-arm-yocto-bsp.git/">其他分支代码</a>，如下:</p>
 <p><img src="/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/fsl-arm-yocto-bsp-git.jpg"></p>

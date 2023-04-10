@@ -322,7 +322,7 @@
 
 <p>点击如下图所示的<code>安装增强功能</code>:</p>
 <p><img src="/2020/02/15/VirtualBox-%E5%AE%89%E8%A3%85%E5%8F%8A%E9%85%8D%E7%BD%AE-Ubuntu14-04-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%89%88/virtualmachine-install-enhance.jpg"></p>
-<figure class="highlight bash"><figcaption><span>挂载光盘</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /mnt/cdrom</span><br><span class="line">sudo mount /dev/cdrom /mnt/cdrom/</span><br><span class="line"><span class="comment"># mount: block device /dev/sr0 is write-protected, mounting read-only</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>挂载光盘</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> /mnt/cdrom</span><br><span class="line">sudo mount /dev/cdrom /mnt/cdrom/</span><br><span class="line"><span class="comment"># mount: block device /dev/sr0 is write-protected, mounting read-only</span></span><br></pre></td></tr></table></figure>
 
 <figure class="highlight bash"><figcaption><span>运行安装程序</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /mnt/cdrom/</span><br><span class="line">sudo ./VBoxLinuxAdditions.run</span><br><span class="line">sudo shutdown -h 0 -r</span><br></pre></td></tr></table></figure>
 

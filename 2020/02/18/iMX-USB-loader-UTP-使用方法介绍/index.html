@@ -277,7 +277,7 @@
 <li>使用 USB loader</li>
 </ol>
 <p>创建 <code>firmware</code> 目录:</p>
-<figure class="highlight bash"><figcaption><span>创建目录</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir firmware </span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>创建目录</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> firmware </span><br></pre></td></tr></table></figure>
 
 <p>将<a href="/2020/02/17/%E6%90%AD%E5%BB%BA-iMX6Q-SabreSD-Yocto-%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83#%E7%BC%96%E8%AF%91%E6%9E%84%E5%BB%BA-MFGTool">生成的镜像文件</a>拷贝到 <code>firmware</code> 目录中后执行:</p>
 <figure class="highlight bash"><figcaption><span>运行 imx_usb</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./imx_usb </span><br></pre></td></tr></table></figure>
@@ -286,7 +286,7 @@
 <figure class="highlight bash"><figcaption><span>串口输出信息</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">......</span><br><span class="line">Starting UTP</span><br><span class="line">uuc 0.5 [built Jan  9 2020 12:41:11]</span><br><span class="line">UTP: Waiting <span class="keyword">for</span> device to appear</span><br><span class="line">UTP: file/device node /dev/utp already exists</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
 
 <p>此时开发板通过 USB 将自己模拟成一个 <code>sg</code> 设备，在电脑端可以通过以下命令查看此设备:</p>
-<figure class="highlight bash"><figcaption><span>查看 sg 设备</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ls /dev/sg*</span><br><span class="line"><span class="comment"># /dev/sg0  /dev/sg1</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>查看 sg 设备</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> /dev/sg*</span><br><span class="line"><span class="comment"># /dev/sg0  /dev/sg1</span></span><br></pre></td></tr></table></figure>
 
 <p>其中 <code>/dev/sg1</code> 就是开发板。通过此设备我们便可用 <code>UTP</code> 工具与开发板通信。</p>
 <h2 id="UTP-安装配置"><a href="#UTP-安装配置" class="headerlink" title="UTP 安装配置"></a>UTP 安装配置</h2><ol start="0">
