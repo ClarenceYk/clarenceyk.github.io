@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="最近为一个项目开发软件，在实做过程中发现软件需求比较复杂：涉及多种对内对外应用接口，需要操作的数据和需要维护的状态种类多，各种操作较繁杂还牵扯到同步问题。在一边开发功能一边重构的过程中发现一套能很好适应当前开发需求的软件组织方式，本想写一篇总结文章，但在搜索整理资料的时候发现有前辈在 2012 年的一篇博客中已经提出了这样的软件设计模式（或称架构），于是在这里翻译这篇文章供参考。 原文地址： Th">
+<meta property="og:type" content="article">
+<meta property="og:title" content="简明架构">
+<meta property="og:url" content="https://clarenceyk.github.io/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="最近为一个项目开发软件，在实做过程中发现软件需求比较复杂：涉及多种对内对外应用接口，需要操作的数据和需要维护的状态种类多，各种操作较繁杂还牵扯到同步问题。在一边开发功能一边重构的过程中发现一套能很好适应当前开发需求的软件组织方式，本想写一篇总结文章，但在搜索整理资料的时候发现有前辈在 2012 年的一篇博客中已经提出了这样的软件设计模式（或称架构），于是在这里翻译这篇文章供参考。 原文地址： Th">
+<meta property="og:locale">
+<meta property="og:image" content="https://clarenceyk.github.io/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/w.jpg">
+<meta property="article:published_time" content="2020-03-28T14:30:44.000Z">
+<meta property="article:modified_time" content="2020-03-30T16:34:12.000Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="Architecture">
+<meta property="article:tag" content="Software Design">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://clarenceyk.github.io/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/w.jpg">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>简明架构 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          简明架构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-03-28 22:30:44" itemprop="dateCreated datePublished" datetime="2020-03-28T22:30:44+08:00">2020-03-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-03-31 00:34:12" itemprop="dateModified" datetime="2020-03-31T00:34:12+08:00">2020-03-31</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近为一个项目开发软件，在实做过程中发现软件需求比较复杂：涉及多种对内对外应用接口，需要操作的数据和需要维护的状态种类多，各种操作较繁杂还牵扯到同步问题。在一边开发功能一边重构的过程中发现一套能很好适应当前开发需求的软件组织方式，本想写一篇总结文章，但在搜索整理资料的时候发现有前辈在 2012 年的一篇博客中已经提出了这样的软件设计模式（或称架构），于是在这里翻译这篇文章供参考。</p>
+<p><em><strong>原文地址：</strong></em> <a target="_blank" rel="noopener" href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">The Clean Architecture</a></p>
+<img src="/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/w.jpg" class="" title="Architecture" alt="Architecture">
+
+<span id="more"></span>
+
+<p>以下为译文。</p>
+<p>在过去的几年间我们已经看到过各种各样关于系统架构的设想，如下：</p>
+<ul>
+<li>来自 Alistair Cockburn 的<a target="_blank" rel="noopener" href="http://alistair.cockburn.us/Hexagonal+architecture">六边形架构</a>（也称接口与适配），此架构被 Steve Freeman 与 Nat Pryce 在其合著的《测试驱动的面向对象软件开发》一书中采纳</li>
+<li>来自 Jeffrey Palermo 的<a target="_blank" rel="noopener" href="http://jeffreypalermo.com/blog/the-onion-architecture-part-1/">洋葱架构</a></li>
+<li>我去年在博客中提出的<a target="_blank" rel="noopener" href="http://blog.cleancoders.com/2011-09-30-Screaming-Architecture">令人惊叹的架构</a></li>
+<li>由 James Coplien 和 Trygve Reenskaug 提出的 <a target="_blank" rel="noopener" href="http://www.amazon.com/Lean-Architecture-Agile-Software-Development/dp/0470684208/">DCI</a></li>
+<li>Ivar Jacobson 在其所著的《实例驱动的面向对象软件工程》一书中提出的 <a target="_blank" rel="noopener" href="http://www.amazon.com/Object-Oriented-Software-Engineering-Approach/dp/0201544350">BCE</a></li>
+</ul>
+<p>虽然以上这些架构都在细节上有所不同，但在宏观上非常相似。它们有同一个的目标，关注对软件的拆分，通过将软件分解为不同的层次，以达到拆分的目的。每种架构都至少有一层用于描述业务规则，其他层次用于创建接口。</p>
+<p>使用这些架构所产生的系统都有以下特点：</p>
+<ol>
+<li>独立于框架。架构不依赖于功能丰富的软件库。这让你能够将软件框架作为工具使用，而不用为了使用框架将其塞入系统以满足框架的限制。</li>
+<li>可测试。业务规则能够在没有界面、数据库、Web 服务器或其他元素的情况下被测试。</li>
+<li>独立于界面。可以在不改变系统其余部分的情况下很容易地修改界面。例如，可以将 Web 界面改为命令行界面却不改变业务规则。</li>
+<li>独立于数据库。你可以随时弃用 Oracle 或 SQL Server 的数据库改为使用 Mongo、BigTable、CouchDB 或者其他数据库。因为你的业务规则不与数据库绑定。</li>
+<li>独立于任意外部机构。事实上你的业务规则根本对外部世界一无所知。</li>
+</ol>
+<h2 id="依赖规则"><a href="#依赖规则" class="headerlink" title="依赖规则"></a>依赖规则</h2><p>图中每一个同心圆表示不同领域的软件。通常，项目开发得越久软件所处的层级越高。外层圆是机制，内层是策略。</p>
+<p>使这个架构能够正常运转而起到决定性作用的规则是<strong>依赖规则</strong>。这个规则描述了源代码的<strong>依赖关系</strong>只能由<strong>外部指向内部</strong>，处于内圈的代码对处于外圈的代码一无所知。特别的，在外圈定义的对象的名称必不能被处于内圈的代码提及。这些对象包括：函数、类、变量或者其他有名称的软件实体。</p>
+<p>出于同样的原因，在外圈使用的格式化数据不应该在内圈被使用，特别是由某种软件框架产生的格式化数据。我们不希望外圈的任何事物影响到内圈。</p>
+<h2 id="实体"><a href="#实体" class="headerlink" title="实体"></a>实体</h2><p>实体封装了企业范围内的业务规则。实体可以是携带方法的对象也可以是由数据结构和函数组成的集合。实体只要能被企业中不同的应用程序使用即可，具体是什么则无关紧要。</p>
+<p>如果你没有开发企业级软件而是在写单个应用程序，那么这些实体可以是应用程序的业务对象，其中封装了最普遍最高层次的规则。如果架构的外围发生了改变那么实体将会是最后一个需要修改的。例如，你不希望当页面导航或者安全保护方面产生了变更而影响到实体。总的来说，任意指定程序的操作变更都不应影响实体层。</p>
+<h2 id="用例"><a href="#用例" class="headerlink" title="用例"></a>用例</h2><p>处于这一层的软件包含面向应用程序的业务规则，封装和实现所有系统用例。这些用例编排数据流动包括流向实体和从实体流入，以及引导实体使用企业业务规则来实现用例的目的。</p>
+<p>同样，我们不希望这一层的变更影响实体。也不希望这一层受到外部变更的影响，比如数据库、UI 或者任意软件框架，此层与这些情况无关。</p>
+<p>可以预期，应用程序操作的变更会影响用例进而影响处于此层的软件。如果用例本身发生了变化，那么处于此层的代码一定会受到影响。</p>
+<h2 id="接口适配器"><a href="#接口适配器" class="headerlink" title="接口适配器"></a>接口适配器</h2><p>处于此层的软件通常是一组适配器。适配器的作用是将方便于用例和实体使用的数据格式转换为方便外部机构使用的数据格式。外部机构包括数据库、Web 等。比如在此层中会完全包含图形用户界面的 MVC 架构，表示器、视图以及控制器都属于此层。模型一般表示为数据结构，从控制器传给用例，再从用例返回到表示器和视图。</p>
+<p>类似的，数据从方便用例和实体使用的形式转换到方便持久化框架（如数据库）使用的形式也发生在此层。从这一层向内的所有代码都对数据库不了解。如果数据是 SQL 数据库那么所有的 SQL 语句都应该被限制在此层用于与数据库交互的部分。</p>
+<p>当然此层还有另一种必备的适配器，用于将来自外部服务的数据格式转换为用例和实体使用的内部数据格式。</p>
+<h2 id="框架和驱动"><a href="#框架和驱动" class="headerlink" title="框架和驱动"></a>框架和驱动</h2><p>最外一层通常是由软件框架与工具组成，例如数据库、Web 开发框架等。一般你不需要在此层写大量代码而是写一些“胶水”代码用于与紧邻的内层通信。</p>
+<p>这一层是所有具体细节出现的地方，例如 Web、数据库都充满各种细节需要关注，将这类事物放到最外层可以最大可能地减少对整体系统的影响。</p>
+<h2 id="仅有四层？"><a href="#仅有四层？" class="headerlink" title="仅有四层？"></a>仅有四层？</h2><p>不是，此图只是概念展示。在实际操作中你会发现所需的不止四层，也没有规定一定只能有四层。无论怎样<strong>依赖原则</strong>始终有效，即源代码总是向内依赖。越往内越抽象。最外圈是最低层次包含最具体的细节，越往内软件越为抽象封装更高层次的策略，最中心的圈也就最一般化。</p>
+<h2 id="跨越边界"><a href="#跨越边界" class="headerlink" title="跨越边界"></a>跨越边界</h2><p>在图示中的右下角可以看到一个示例展示了我们如何跨越不同层次的边界。可以看到控制器和表示器通过它们隔壁层的用例来互相通信。注意控制的流向，它从控制器开始，通过用例最后在表示器中执行以结束。在看源代码的依赖方向，它们都向内指向用例，这就产生了矛盾。</p>
+<p>通常我们使用<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Dependency_inversion_principle">依赖倒置原则</a>解决这个显而易见的冲突。诸如 Java 一类的编程语言我们可以通过组织一组接口和类继承关系使得在适当的时候让源代码的依赖方向和控制方向相反以实现跨越边界。</p>
+<p>例如，考虑当用例需要调用表示器的情况。这种调用方式必不能直接实现，因为这样违反了依赖原则：内部事物对外部一无所知。因此我们让用例定义以及调用接口（interface）也就是图中内圈的 Use Case Output Port，而让外圈的表示器实现这个接口（interface）。</p>
+<p>这个技巧可以用在整个架构中所有需要跨越边界的地方。我们利用面向对象编程语言的动态多态性这个特点创建与控制流向相反的源代码依赖。这样不论控制流动的方向是什么我们都能让设计符合<strong>依赖原则</strong>。</p>
+<h2 id="哪些数据会跨越边界"><a href="#哪些数据会跨越边界" class="headerlink" title="哪些数据会跨越边界"></a>哪些数据会跨越边界</h2><p>一般跨越边界的是简单的数据结构。可以根据自己的需要选择基本数据结构或者简单的数据传输对象或者函数调用时传入的参数，也可以将数据打包进哈稀表或者构建到对象里，关键在于用于跨越边界的数据要足够简单和具备独立性。我们并不希望让<strong>实体</strong>或数据库的原始数据行跨越边界，同样不希望跨越边界的结构里包含任意会违背<strong>依赖原则</strong>的数据。</p>
+<p>比如，许多数据库框架会用便于使用的数据格式作为查询的响应，我们把这样的数据称为 RowStructure。我们不希望跨越边界时传递这样的结构，这样可能会违背<strong>依赖原则</strong>因为这有几率迫使内部的代码必须了解外部的数据定义。</p>
+<p>因此，我们传递的数据跨越边界时，最常用是便于内层使用的格式。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>遵循这些简单的规则并不费劲，并且可以省去开发过程中很多麻烦。将整体软件分层并配合<strong>依赖原则</strong>，你可以创建一个具备极好测试性的系统，这会带来非常多的好处。当系统外部任意部分成为了整体系统的瓶颈，如数据库或者 Web 开发框架，你能只花很小的代价就将其撤换。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Architecture/" rel="tag"># Architecture</a>
+              <a href="/tags/Software-Design/" rel="tag"># Software Design</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/18/%E7%94%A8-Go-%E8%AF%AD%E8%A8%80%E6%8E%A7%E5%88%B6-GPIO/" rel="prev" title="用 Go 语言控制 GPIO">
+      <i class="fa fa-chevron-left"></i> 用 Go 语言控制 GPIO
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/" rel="next" title="搭建 IPPBX 基础开发环境">
+      搭建 IPPBX 基础开发环境 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E8%A7%84%E5%88%99"><span class="nav-number">1.</span> <span class="nav-text">依赖规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93"><span class="nav-number">2.</span> <span class="nav-text">实体</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E4%BE%8B"><span class="nav-number">3.</span> <span class="nav-text">用例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A5%E5%8F%A3%E9%80%82%E9%85%8D%E5%99%A8"><span class="nav-number">4.</span> <span class="nav-text">接口适配器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%86%E6%9E%B6%E5%92%8C%E9%A9%B1%E5%8A%A8"><span class="nav-number">5.</span> <span class="nav-text">框架和驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%85%E6%9C%89%E5%9B%9B%E5%B1%82%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">仅有四层？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%A8%E8%B6%8A%E8%BE%B9%E7%95%8C"><span class="nav-number">7.</span> <span class="nav-text">跨越边界</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%93%AA%E4%BA%9B%E6%95%B0%E6%8D%AE%E4%BC%9A%E8%B7%A8%E8%B6%8A%E8%BE%B9%E7%95%8C"><span class="nav-number">8.</span> <span class="nav-text">哪些数据会跨越边界</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

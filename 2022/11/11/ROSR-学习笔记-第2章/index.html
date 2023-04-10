@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="ROSR 是『RISC-V OS using Rust』的缩写，是由 Stephen Marz 在他的系列博客中提供的操作系统开发教程。 本章描述使用 Rust 的 unsafe 功能操作 MMIO 来控制 UART 进而实现 println! 等宏。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ROSR 学习笔记 - 第2章">
+<meta property="og:url" content="https://clarenceyk.github.io/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="ROSR 是『RISC-V OS using Rust』的缩写，是由 Stephen Marz 在他的系列博客中提供的操作系统开发教程。 本章描述使用 Rust 的 unsafe 功能操作 MMIO 来控制 UART 进而实现 println! 等宏。">
+<meta property="og:locale">
+<meta property="og:image" content="https://clarenceyk.github.io/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/ns16550a.png">
+<meta property="article:published_time" content="2022-11-11T02:38:40.000Z">
+<meta property="article:modified_time" content="2022-11-11T02:38:40.000Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="RISC-V">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="Rust">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://clarenceyk.github.io/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/ns16550a.png">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>ROSR 学习笔记 - 第2章 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ROSR 学习笔记 - 第2章
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-11-11 10:38:40" itemprop="dateCreated datePublished" datetime="2022-11-11T10:38:40+08:00">2022-11-11</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>ROSR 是『RISC-V OS using Rust』的缩写，是由 <a target="_blank" rel="noopener" href="https://osblog.stephenmarz.com/">Stephen Marz</a> 在他的系列博客中提供的操作系统开发教程。</p>
+<p>本章描述使用 Rust 的 unsafe 功能操作 MMIO 来控制 UART 进而实现 <code>println!</code> 等宏。</p>
+<span id="more"></span>
+
+<h2 id="Universal-Asynchronous-Reciever-x2F-Transmitter-UART"><a href="#Universal-Asynchronous-Reciever-x2F-Transmitter-UART" class="headerlink" title="Universal Asynchronous Reciever &#x2F; Transmitter (UART)"></a>Universal Asynchronous Reciever &#x2F; Transmitter (UART)</h2><p>QEMU 内部虚拟了一个 NS16550A UART 芯片，查看 <a target="_blank" rel="noopener" href="https://github.com/qemu/qemu/blob/master/hw/riscv/virt.c">qemu&#x2F;hw&#x2F;riscv&#x2F;virt.c</a> 代码可知：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">const</span> MemMapEntry virt_memmap[] = &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    [VIRT_UART0] =        &#123; <span class="number">0x10000000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>通过物理地址 0x10000000，即可访问 NS16550A 芯片的寄存器。BTW，这种通过物理地址访问的 IO 被称为 MMIO。</p>
+<p>从下图可以看到发送（THR）接收（RBR）寄存器都是 8 bit（1 byte），我们只要从地址 0x10000000 读取就能从 UART 接收一个字节，向地址 0x10000000 写入就能发送一个字节。</p>
+<p><img src="/2022/11/11/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC2%E7%AB%A0/ns16550a.png"></p>
+<h2 id="Rust-中的-MMIO"><a href="#Rust-中的-MMIO" class="headerlink" title="Rust 中的 MMIO"></a>Rust 中的 MMIO</h2><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// # Safety</span></span><br><span class="line"><span class="comment">///</span></span><br><span class="line"><span class="comment">/// We label the mmio function unsafe since</span></span><br><span class="line"><span class="comment">/// we will be working with raw memory. Rust cannot</span></span><br><span class="line"><span class="comment">/// make any guarantees when we do this.</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">unsafe</span> <span class="title function_ invoke__">mmio_write</span>(address: <span class="type">usize</span>, offset: <span class="type">usize</span>, value: <span class="type">u8</span>) &#123;</span><br><span class="line">    <span class="comment">// Set the pointer based off of the address</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">reg</span> = address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="type">u8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// write_volatile is a member of the *mut raw</span></span><br><span class="line">    <span class="comment">// and we can use the .add() to give us another pointer</span></span><br><span class="line">    <span class="comment">// at an offset based on the original pointer&#x27;s memory</span></span><br><span class="line">    <span class="comment">// address. <span class="doctag">NOTE:</span> The add uses pointer arithmetic so it is</span></span><br><span class="line">    <span class="comment">// new_pointer = old_pointer + sizeof(pointer_type) * offset</span></span><br><span class="line">    reg.<span class="title function_ invoke__">add</span>(offset).<span class="title function_ invoke__">write_volatile</span>(value);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/// # Safety</span></span><br><span class="line"><span class="comment">///</span></span><br><span class="line"><span class="comment">/// We label the mmio function unsafe since</span></span><br><span class="line"><span class="comment">/// we will be working with raw memory. Rust cannot</span></span><br><span class="line"><span class="comment">/// make any guarantees when we do this.</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">unsafe</span> <span class="title function_ invoke__">mmio_read</span>(address: <span class="type">usize</span>, offset: <span class="type">usize</span>, value: <span class="type">u8</span>) <span class="punctuation">-&gt;</span> <span class="type">u8</span> &#123;</span><br><span class="line">    <span class="comment">// Set the pointer based off of the address</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">reg</span> = address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="type">u8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// read_volatile() is much like write_volatile() except it</span></span><br><span class="line">    <span class="comment">// will grab 8-bits from the pointer and give that value to us.</span></span><br><span class="line">    <span class="comment">// We don&#x27;t add a semi-colon at the end here so that the value</span></span><br><span class="line">    <span class="comment">// is &quot;returned&quot;.</span></span><br><span class="line">    reg.<span class="title function_ invoke__">add</span>(offset).<span class="title function_ invoke__">read_volatile</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Rust-UART-驱动"><a href="#Rust-UART-驱动" class="headerlink" title="Rust UART 驱动"></a>Rust UART 驱动</h2><p>UART 驱动包括：</p>
+<ul>
+<li>数据结构用于存储基地址</li>
+<li>初始化方法</li>
+<li>输出一个字符函数（put）</li>
+<li>读取一个字符函数（get）</li>
+<li>实现 Write traits</li>
+</ul>
+<h3 id="数据结构定义"><a href="#数据结构定义" class="headerlink" title="数据结构定义"></a>数据结构定义</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">UartDriver</span> &#123;</span><br><span class="line">    base_address: <span class="type">usize</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="增加初始化方法"><a href="#增加初始化方法" class="headerlink" title="增加初始化方法"></a>增加初始化方法</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span> <span class="title class_">UartDriver</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">init</span>(&amp;<span class="keyword">self</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">ptr</span> = <span class="keyword">self</span>.base_address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="type">u8</span>;</span><br><span class="line">        <span class="keyword">unsafe</span> &#123;</span><br><span class="line">            <span class="keyword">let</span> <span class="variable">lcr</span> = (<span class="number">1</span> &lt;&lt; <span class="number">0</span>) | (<span class="number">1</span> &lt;&lt; <span class="number">1</span>);</span><br><span class="line">            </span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">3</span>).<span class="title function_ invoke__">write_volatile</span>(lcr);</span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">2</span>).<span class="title function_ invoke__">write_volatile</span>(<span class="number">1</span> &lt;&lt; <span class="number">0</span>);</span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">1</span>).<span class="title function_ invoke__">write_volatile</span>(<span class="number">1</span> &lt;&lt; <span class="number">0</span>);</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">let</span> <span class="variable">divisor</span>: <span class="type">u16</span> = <span class="number">12</span>;</span><br><span class="line">            <span class="keyword">let</span> <span class="variable">divisor_least</span>: <span class="type">u8</span> = (divisor &amp; <span class="number">0xff</span>) <span class="keyword">as</span> <span class="type">u8</span>;</span><br><span class="line">            <span class="keyword">let</span> <span class="variable">divisor_most</span>:  <span class="type">u8</span> = (divisor &gt;&gt; <span class="number">8</span>) <span class="keyword">as</span> <span class="type">u8</span>;</span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">3</span>).<span class="title function_ invoke__">write_volatile</span>(lcr | <span class="number">1</span> &lt;&lt; <span class="number">7</span>);</span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">0</span>).<span class="title function_ invoke__">write_volatile</span>(divisor_least);</span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">1</span>).<span class="title function_ invoke__">write_volatile</span>(divisor_most);</span><br><span class="line">            </span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">3</span>).<span class="title function_ invoke__">write_volatile</span>(lcr);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>7~9行，设置8位数据、无停止位、无奇偶（因为是模拟的 UART，一般硬件设置为 8N1）</p>
+<p>10、11行，开启收中断、开启 FIFO</p>
+<p>13~18行，设置波特率 115200（因为是模拟的 UART 所以波特率设置不影响）</p>
+<p>根据 NS16550A 芯片资料，其内部有一个全局时钟频率为 22.729 MHz（22729000 Hz），所以要设置 115200 波特率： divisor &#x3D; 22729000 &#x2F; (115200 * 16) &#x3D; 12。</p>
+<p>并且在设置波特率之前需把 LCR 寄存器的 DLAB 位置1，设置完后再置0。</p>
+<h3 id="增加-put-方法"><a href="#增加-put-方法" class="headerlink" title="增加 put 方法"></a>增加 put 方法</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span> <span class="title class_">UartDriver</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">put</span>(&amp;<span class="keyword">self</span>, c: <span class="type">u8</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">ptr</span> = <span class="keyword">self</span>.base_address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="type">u8</span>;</span><br><span class="line">        <span class="keyword">unsafe</span> &#123;</span><br><span class="line">            ptr.<span class="title function_ invoke__">add</span>(<span class="number">0</span>).<span class="title function_ invoke__">write_volatile</span>(c);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="增加-get-方法"><a href="#增加-get-方法" class="headerlink" title="增加 get 方法"></a>增加 get 方法</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span> <span class="title class_">UartDriver</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">get</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;<span class="type">u8</span>&gt; &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">ptr</span> = <span class="keyword">self</span>.base_address <span class="keyword">as</span> *<span class="keyword">mut</span> <span class="type">u8</span>;</span><br><span class="line">        <span class="keyword">unsafe</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> ptr.<span class="title function_ invoke__">add</span>(<span class="number">5</span>).<span class="title function_ invoke__">read_volatile</span>() &amp; <span class="number">1</span> == <span class="number">0</span> &#123;</span><br><span class="line">                <span class="literal">None</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="title function_ invoke__">Some</span>(ptr.<span class="title function_ invoke__">add</span>(<span class="number">0</span>).<span class="title function_ invoke__">read_volatile</span>())</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们的内核还没处理中断，所以采用 poll 的方式检测是否有数据。</p>
+<h3 id="实现-Write-traits"><a href="#实现-Write-traits" class="headerlink" title="实现 Write traits"></a>实现 Write traits</h3><p>这一步是为了 print! 宏做准备。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> core::fmt::&#123;Error, Write&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span> <span class="title class_">Write</span> <span class="keyword">for</span> <span class="title class_">UartDriver</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">write_str</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>, s: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> <span class="type">Result</span>&lt;(), Error&gt; &#123;</span><br><span class="line">        <span class="keyword">for</span> <span class="variable">c</span> <span class="keyword">in</span> s.<span class="title function_ invoke__">bytes</span>() &#123;</span><br><span class="line">            <span class="keyword">self</span>.<span class="title function_ invoke__">put</span>(c);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title function_ invoke__">Ok</span>(())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现-print-宏"><a href="#实现-print-宏" class="headerlink" title="实现 print! 宏"></a>实现 print! 宏</h2><p>第1章中，<code>lib.rs</code> 文件中的 print! 宏的实现是空，现在我们可以填入内容了：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[macro_export]</span></span><br><span class="line"><span class="built_in">macro_rules!</span> print</span><br><span class="line">&#123;</span><br><span class="line">    ($($args:tt)+) =&gt; &#123;&#123;</span><br><span class="line">        <span class="keyword">use</span> core::fmt::Write;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">_</span> = <span class="built_in">write!</span>(uart::UartDriver::<span class="title function_ invoke__">new</span>(<span class="number">0x1000_0000</span>), $($args)+);</span><br><span class="line">    &#125;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello, World!"></a>Hello, World!</h2><p>在 kmain 入口处初始化 UART 后就可以向终端输出信息了：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[no_mangle]</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="keyword">fn</span> <span class="title function_">kmain</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">my_uart</span> = uart::UartDriver::<span class="title function_ invoke__">new</span>(<span class="number">0x1000_0000</span>);</span><br><span class="line">    my_uart.<span class="title function_ invoke__">init</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Hello, World!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样也能从终端获取用户输入：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[no_mangle]</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="keyword">fn</span> <span class="title function_">kmain</span>() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">loop</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">let</span> <span class="variable">Some</span>(c) = my_uart.<span class="title function_ invoke__">get</span>() &#123;</span><br><span class="line">            <span class="keyword">match</span> c &#123;</span><br><span class="line">                <span class="number">8</span> | <span class="number">127</span> =&gt; &#123;</span><br><span class="line">                    <span class="built_in">print!</span>(<span class="string">&quot;&#123;&#125;&#123;&#125;&#123;&#125;&quot;</span>, <span class="number">8</span> <span class="keyword">as</span> <span class="type">char</span>, <span class="string">&#x27; &#x27;</span>, <span class="number">8</span> <span class="keyword">as</span> <span class="type">char</span>);</span><br><span class="line">                &#125;,</span><br><span class="line">                <span class="number">10</span> | <span class="number">13</span> =&gt; &#123;</span><br><span class="line">                    <span class="built_in">println!</span>();</span><br><span class="line">                &#125;,</span><br><span class="line">                _ =&gt; &#123;</span><br><span class="line">                    <span class="built_in">print!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, c <span class="keyword">as</span> <span class="type">char</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RISC-V/" rel="tag"># RISC-V</a>
+              <a href="/tags/OS/" rel="tag"># OS</a>
+              <a href="/tags/Rust/" rel="tag"># Rust</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC1%E7%AB%A0/" rel="prev" title="ROSR 学习笔记 - 第1章">
+      <i class="fa fa-chevron-left"></i> ROSR 学习笔记 - 第1章
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/11/21/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC3-1%E7%AB%A0/" rel="next" title="ROSR 学习笔记 - 第3.1章">
+      ROSR 学习笔记 - 第3.1章 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Universal-Asynchronous-Reciever-x2F-Transmitter-UART"><span class="nav-number">1.</span> <span class="nav-text">Universal Asynchronous Reciever &#x2F; Transmitter (UART)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rust-%E4%B8%AD%E7%9A%84-MMIO"><span class="nav-number">2.</span> <span class="nav-text">Rust 中的 MMIO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rust-UART-%E9%A9%B1%E5%8A%A8"><span class="nav-number">3.</span> <span class="nav-text">Rust UART 驱动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9A%E4%B9%89"><span class="nav-number">3.1.</span> <span class="nav-text">数据结构定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0%E5%88%9D%E5%A7%8B%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">增加初始化方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0-put-%E6%96%B9%E6%B3%95"><span class="nav-number">3.3.</span> <span class="nav-text">增加 put 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0-get-%E6%96%B9%E6%B3%95"><span class="nav-number">3.4.</span> <span class="nav-text">增加 get 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-Write-traits"><span class="nav-number">3.5.</span> <span class="nav-text">实现 Write traits</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-print-%E5%AE%8F"><span class="nav-number">4.</span> <span class="nav-text">实现 print! 宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number">5.</span> <span class="nav-text">Hello, World!</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

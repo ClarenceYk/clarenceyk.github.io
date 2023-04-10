@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="软件开发中应对不同的需求有不同的解决方案，进而产生不同的软件项目。针对不同的软件项目需搭建特定的开发环境以适应各个项目的开发需要。本文以在 Linux 环境中搭建 IPPBX 开发环境为例来介绍如何搭建一个符合需求的开发环境。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="搭建 IPPBX 基础开发环境">
+<meta property="og:url" content="https://clarenceyk.github.io/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="软件开发中应对不同的需求有不同的解决方案，进而产生不同的软件项目。针对不同的软件项目需搭建特定的开发环境以适应各个项目的开发需要。本文以在 Linux 环境中搭建 IPPBX 开发环境为例来介绍如何搭建一个符合需求的开发环境。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-05-06T05:58:46.000Z">
+<meta property="article:modified_time" content="2020-05-08T09:42:23.000Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="systemd-nspawn">
+<meta property="article:tag" content="rsync">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>搭建 IPPBX 基础开发环境 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2020/05/06/%E6%90%AD%E5%BB%BA-IPPBX-%E5%9F%BA%E7%A1%80%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          搭建 IPPBX 基础开发环境
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-05-06 13:58:46" itemprop="dateCreated datePublished" datetime="2020-05-06T13:58:46+08:00">2020-05-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-05-08 17:42:23" itemprop="dateModified" datetime="2020-05-08T17:42:23+08:00">2020-05-08</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>软件开发中应对不同的需求有不同的解决方案，进而产生不同的软件项目。针对不同的软件项目需搭建特定的开发环境以适应各个项目的开发需要。本文以在 Linux 环境中搭建 IPPBX 开发环境为例来介绍如何搭建一个符合需求的开发环境。</p>
+<span id="more"></span>
+
+<h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>整个开发环境里有如下设备：</p>
+<ol>
+<li>一台开发机，包含2块硬盘</li>
+<li>N 台目标设备（最终业务运行在这些设备上）</li>
+</ol>
+<p>实际的开发场景应该是：开发机随时运行着，其运行状态为：2块硬盘各有一个 Linux 操作系统，其中一个为主系统另一个以类似容器的形式运行在主系统中。主系统中只安装各类开发工具，不运行任何与项目业务相关的服务，所有和项目业务相关的服务都运行在“容器<sup><a href="#%E6%B3%A8%E9%87%8A">1</a></sup>”中。开发人员通过 SSH 远程登陆到主系统中完成开发，或者本地开发完成后将软件服务同步到主系统，维护人员再将新的内容同步到“容器”中。</p>
+<p>实际的系统部署场景应该是：当需要将系统部署到新设备上时，维护人员只需将开发机上2块硬盘中存放“容器”的那块硬盘中的数据“拷贝<sup><a href="#%E6%B3%A8%E9%87%8A">2</a></sup>”到新设备的硬盘中即可。</p>
+<h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><p>在着手搭建环境之前需要了解清楚开发环境搭建针对的目标，本例中的目标很简单只有如下2个：</p>
+<ol>
+<li>便于开发工作的进行。</li>
+<li>能方便地将完成了开发工作的系统部署到新设备上。</li>
+</ol>
+<h2 id="拆分需求"><a href="#拆分需求" class="headerlink" title="拆分需求"></a>拆分需求</h2><p>结合前面<code>需求</code>和<code>目标</code>可得到如下细分的功能：</p>
+<ol>
+<li>开发机上需要在其中一块硬盘中安装并运行一个 Linux 操作系统。</li>
+<li>开发机上的另一块硬盘安装一个 Linux 操作系统，此系统能脱离主系统独立运行，同时又能作为“容器”运行在主系统之中。</li>
+<li>需要一个同步方法，能将“容器”同步到新设备的硬盘中。</li>
+</ol>
+<h2 id="选择操作系统及软件工具"><a href="#选择操作系统及软件工具" class="headerlink" title="选择操作系统及软件工具"></a>选择操作系统及软件工具</h2><p>对于开发机的主操作系统这部分没有严格的要求，选择一个适合自己使用习惯的较新的 Linux 发行版即可，这里作为演示我选择的是 <code>Ubuntu20.04</code>。</p>
+<p>容器中运行的操作系统，同时也是最终设备中运行的操作系统，这部分对系统的稳定性以及很多软件的兼容性要求更高一些，所以我们选择 <code>Debian10</code>。</p>
+<p>对于“容器化”的部分，目前有很多容器化技术，如功能非常少但使用非常简单的 <code>chroot</code>（甚至不能作为容器技术🙈）；又如功能非常强大但使用起来有一定门槛的 <code>docker</code>、<code>podman</code> 或者 Ubuntu 推出的 <code>LXC</code> 等；还有介于前面两种之间的 <code>systemd-nspawn</code>。鉴于本例中的使用场景，我们选择 <code>systemd-nspawn</code>，因为其不仅能在我们的<a href="#%E9%9C%80%E6%B1%82">需求</a>范围内很好地隔离主系统与“容器”而且使用方法相对简单。</p>
+<p>对于“同步”这部分，我们选择 <code>rsync</code>，这是一个基于增量传输的文件同步软件，既可用通过单机本地同步也可通过网络同步，能满足我们开发环境中的同步需求。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="主系统"><a href="#主系统" class="headerlink" title="主系统"></a>主系统</h3><p>主操作系统我们选用的是 <code>Ubuntu20.04</code> 安装方法网络上很多，搜索一下即可，这里不再介绍。</p>
+<h3 id="容器中的系统"><a href="#容器中的系统" class="headerlink" title="容器中的系统"></a>容器中的系统</h3><p>本例中我们采用的是 <code>Debian10</code>，安装方法同上。值得注意的是，此系统需安装到开发机的另一块硬盘上，同时在安装前可先取下安装了主系统的硬盘，这样主系统的启动条目就不会出现在“容器”的 grub 启动选项中。此外，分区方式推荐如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sdb      8:16   0 232.9G  0 disk</span><br><span class="line">├─sdb1   8:17   0    16G  0 part [SWAP]</span><br><span class="line">└─sdb2   8:18   0 216.8G  0 part</span><br></pre></td></tr></table></figure>
+
+<p>其中交换分区根据自己的实际需求划分，剩下的空间全部作为 <code>/</code> 分区。</p>
+<h3 id="工具软件"><a href="#工具软件" class="headerlink" title="工具软件"></a>工具软件</h3><p>在主系统中安装软件包 <code>systemd-contianer</code>（此中软件包中包含 <code>systemd-nspawn</code> 工具）以及安装同步工具 <code>rsync</code>。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install systemd-contianer</span><br><span class="line">sudo apt install rsync</span><br></pre></td></tr></table></figure>
+
+<p><em>注：关于使用 <code>rsync</code> 来同步容器到新设备的方法放在<a href="/2020/05/08/%E5%A4%8D%E5%88%BB-Linux-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%A6%E4%B8%80%E5%8F%B0%E8%AE%BE%E5%A4%87">另一篇文章</a>中阐述。</em></p>
+<h2 id="运行“容器”"><a href="#运行“容器”" class="headerlink" title="运行“容器”"></a>运行“容器”</h2><p>将2块装好了操作系统的硬盘都接到主板上，然后启动开发机进入 <code>BIOS</code> 将装有 Ubuntu20.04 操作系统的硬盘设置到启动序列的第一位。进入主系统后，查看硬盘分区，大致如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">lsblk</span></span><br><span class="line">sda      8:0    0 931.5G  0 disk</span><br><span class="line">├─sda1   8:1    0  15.3G  0 part [SWAP]</span><br><span class="line">├─sda2   8:2    0 122.1G  0 part /</span><br><span class="line">└─sda3   8:3    0 794.2G  0 part /home</span><br><span class="line">sdb      8:16   0 232.9G  0 disk</span><br><span class="line">├─sdb1   8:17   0    16G  0 part</span><br><span class="line">└─sdb2   8:18   0 216.8G  0 part</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>sda</code> 中安装了我们的主系统（Ubuntu）也就是当前运行的系统，<code>sdb</code> 中安装了“容器”的系统（Debian）。</p>
+<ul>
+<li>创建挂载点</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /mnt/debian_10</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>挂载 <code>sdb</code> 中的文件系统</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo mount /dev/sdb2 /mnt/debian_10</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用 <code>systemd-nspawn</code> 进入“容器”环境</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">sudo systemd-nspawn -D /mnt/debian_10 -b</span></span><br><span class="line">pawning container debian10 on /mntdebian_10.</span><br><span class="line">Press ^] three times within 1s to kill container.</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Welcome to Debian GNU/Linux 10 (buster)!</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Debian GNU/Linux 10 debian console</span><br><span class="line"></span><br><span class="line">debian login:</span><br></pre></td></tr></table></figure>
+
+<p>到此我们就进入了“容器”环境。在容器内部我们可以认为在另一个操作系统里，于是可以执行任何命令以及安装各种软件但是并不影响主系统。例如我们可以<a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_asterisk-sh">安装 Asterisk</a> 与 <a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_freepbx-sh">FreePBX</a></p>
+<ul>
+<li>退出容器</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo shutdown now</span><br></pre></td></tr></table></figure>
+
+<p>或者在 1s 内按下 <code>^]</code> 3次。（<code>control 键</code> + <code>] 键</code>）</p>
+<h2 id="容器中安装平台环境"><a href="#容器中安装平台环境" class="headerlink" title="容器中安装平台环境"></a>容器中安装平台环境</h2><h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt install openssh-server</span><br><span class="line">sudo systemctl start ssh</span><br><span class="line">sudo systemctl enable ssh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Asterisk"><a href="#Asterisk" class="headerlink" title="Asterisk"></a>Asterisk</h3><p>参考 Asterisk 自动安装<a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_asterisk-sh">脚本</a>。</p>
+<p><em>注意：此脚本仅在 <code>Ubuntu18.04</code> 以及 <code>Debian10</code> 中测试通过。</em></p>
+<h3 id="FreePBX"><a href="#FreePBX" class="headerlink" title="FreePBX"></a>FreePBX</h3><p>参考 FreePBX 自动安装<a target="_blank" rel="noopener" href="https://gist.github.com/ClarenceYk/2995d607e1b7678fe0c37665546217aa#file-install_freepbx-sh">脚本</a>。</p>
+<p><em>注意：此脚本仅在 <code>Ubuntu18.04</code> 以及 <code>Debian10</code> 中测试通过。</em></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文介绍了 <code>搭建 IPPBX 基础开发环境</code> 中的操作系统、工具软件选择以及容器的制作与运行。下一篇将接着介绍如何将容器<code>同步</code>到新设备上。</p>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><p><sub>[1] 这里的容器不是指完整的容器技术，仅仅采用了 Linux 容器的概念。</sub></p>
+<p><sub>[2] 只借用“拷贝”的概念，实际操作要更复杂一些。</sub></p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/systemd-nspawn/" rel="tag"># systemd-nspawn</a>
+              <a href="/tags/rsync/" rel="tag"># rsync</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/28/%E7%AE%80%E6%98%8E%E6%9E%B6%E6%9E%84/" rel="prev" title="简明架构">
+      <i class="fa fa-chevron-left"></i> 简明架构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/08/%E5%A4%8D%E5%88%BB-Linux-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%A6%E4%B8%80%E5%8F%B0%E8%AE%BE%E5%A4%87/" rel="next" title="复刻 Linux 操作系统到另一台设备">
+      复刻 Linux 操作系统到另一台设备 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87"><span class="nav-number">2.</span> <span class="nav-text">目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%86%E5%88%86%E9%9C%80%E6%B1%82"><span class="nav-number">3.</span> <span class="nav-text">拆分需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%8F%8A%E8%BD%AF%E4%BB%B6%E5%B7%A5%E5%85%B7"><span class="nav-number">4.</span> <span class="nav-text">选择操作系统及软件工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">5.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%B3%BB%E7%BB%9F"><span class="nav-number">5.1.</span> <span class="nav-text">主系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%B9%E5%99%A8%E4%B8%AD%E7%9A%84%E7%B3%BB%E7%BB%9F"><span class="nav-number">5.2.</span> <span class="nav-text">容器中的系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E8%BD%AF%E4%BB%B6"><span class="nav-number">5.3.</span> <span class="nav-text">工具软件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E2%80%9C%E5%AE%B9%E5%99%A8%E2%80%9D"><span class="nav-number">6.</span> <span class="nav-text">运行“容器”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%B9%E5%99%A8%E4%B8%AD%E5%AE%89%E8%A3%85%E5%B9%B3%E5%8F%B0%E7%8E%AF%E5%A2%83"><span class="nav-number">7.</span> <span class="nav-text">容器中安装平台环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH"><span class="nav-number">7.1.</span> <span class="nav-text">SSH</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Asterisk"><span class="nav-number">7.2.</span> <span class="nav-text">Asterisk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FreePBX"><span class="nav-number">7.3.</span> <span class="nav-text">FreePBX</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E9%87%8A"><span class="nav-number">9.</span> <span class="nav-text">注释</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文将介绍如何交叉编译 Asterisk。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Asterisk 交叉编译">
+<meta property="og:url" content="https://clarenceyk.github.io/2021/11/02/asterisk-cross-compilation/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="本文将介绍如何交叉编译 Asterisk。">
+<meta property="og:locale">
+<meta property="og:image" content="https://clarenceyk.github.io/2021/11/02/asterisk-cross-compilation/dependencies.png">
+<meta property="article:published_time" content="2021-11-02T02:06:11.000Z">
+<meta property="article:modified_time" content="2021-11-10T06:37:16.000Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="Asterisk">
+<meta property="article:tag" content="Cross Compilation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://clarenceyk.github.io/2021/11/02/asterisk-cross-compilation/dependencies.png">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2021/11/02/asterisk-cross-compilation/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Asterisk 交叉编译 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2021/11/02/asterisk-cross-compilation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Asterisk 交叉编译
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-11-02 10:06:11" itemprop="dateCreated datePublished" datetime="2021-11-02T10:06:11+08:00">2021-11-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-11-10 14:37:16" itemprop="dateModified" datetime="2021-11-10T14:37:16+08:00">2021-11-10</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文将介绍如何交叉编译 Asterisk。</p>
+<span id="more"></span>
+
+<h2 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h2><p>开发环境：</p>
+<ul>
+<li>操作系统: <code>Ubuntu 20.04 LTS</code></li>
+<li>CPU 架构: <code>x86_64</code></li>
+</ul>
+<p>目标环境：</p>
+<ul>
+<li>操作系统: <code>Linux 平台(内核版本 2.6.32)</code></li>
+<li>CPU 架构: <code>mipsel</code></li>
+</ul>
+<h2 id="Asterisk-依赖要求"><a href="#Asterisk-依赖要求" class="headerlink" title="Asterisk 依赖要求"></a>Asterisk 依赖要求</h2><p>Asterisk 与各模块间的依赖如下图：</p>
+<p><img src="/2021/11/02/asterisk-cross-compilation/dependencies.png"></p>
+<h2 id="开发环境准备"><a href="#开发环境准备" class="headerlink" title="开发环境准备"></a>开发环境准备</h2><p>安装必备的构建工具：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install -y \</span><br><span class="line">  build-essential \</span><br><span class="line">  autoconf \</span><br><span class="line">  automake \</span><br><span class="line">  bison \</span><br><span class="line">  flex \</span><br><span class="line">  git \</span><br><span class="line">  libtool \</span><br><span class="line">  libtool-bin \</span><br><span class="line">  make \</span><br><span class="line">  pkg-config</span><br></pre></td></tr></table></figure>
+
+<p>准备交叉编译工具链：</p>
+<p>这一步需要注意的是，在安装交叉编译工具链时，需要指定一个目标架构，这里我们使用 <code>mipsel</code>，这个架构是 <code>mipsel-linux-gnu-gcc</code> 的目标架构。</p>
+<p>对于 <code>mipsel</code> 架构所对应的交叉编译工具软件包可从上游厂商处获取。其他架构如 <code>arm</code>、<code>arm64</code> 可从 ARM 官方下载，或直接通过软件包管理工具获取（debian 仓库），或者下载第三方提供的二进制文件（如 Linaro 提供）。</p>
+<p>工作目录准备：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MIPSEL_Cross-Compile</span><br><span class="line">├── build_opt</span><br><span class="line">├── build_source</span><br><span class="line">├── build_start</span><br><span class="line">└── toolchain</span><br></pre></td></tr></table></figure>
+
+<p>建立目录 <code>MIPSEL_Cross-Compile</code> 与子目录 <code>build_opt</code>、<code>build_source</code>、<code>build_start</code>、<code>toolchain</code>，并将 <code>MIPSEL_Cross-Compile/toolchain</code> 目录中的交叉编译工具链添加到环境变量中，以便后续的编译操作可以使用。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export PATH=&quot;$PATH:/home/ubuntu/MIPSEL_Cross-Compile/toolchain/gcc-4.4-gnu/bin&quot;</span><br><span class="line">export LD_LIBRARY_PATH=&quot;$LD_LIBRARY_PATH:/home/ubuntu/MIPSEL_Cross-Compile/toolchain/gcc-4.4-gnu/mipsel-linux/lib&quot;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>build_opt</code>: 存放编译后产生的可执行文件、库文件等</li>
+<li><code>build_source</code>: 存放源代码压缩包</li>
+<li><code>build_start</code>: 存放源代码</li>
+<li><code>toolchain</code>: 存放交叉编译工具链</li>
+</ul>
+<p>准备源代码：</p>
+<p>各个所需模块的源代码通过下载获取（搜索一下便可得到下载地址），并将源代码压缩包拷贝到 <code>build_source</code> 目录中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">asterisk-18-current.tar.gz</span><br><span class="line">asterisk-g72x.zip</span><br><span class="line">bcg729-1.1.1.tar.gz</span><br><span class="line">libedit-20210910-3.1.tar.gz</span><br><span class="line">libuuid-1.0.3.tar.gz</span><br><span class="line">libxml2-2.9.12.tar.gz</span><br><span class="line">ncurses-6.2.tar.gz</span><br><span class="line">openssl-1.1.1l.tar.gz</span><br><span class="line">sqlite-autoconf-3360000.tar.gz</span><br><span class="line">zlib-1.2.11.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>将这些压缩包都解压到 <code>build_start</code> 目录中。</p>
+<h2 id="交叉编译"><a href="#交叉编译" class="headerlink" title="交叉编译"></a>交叉编译</h2><p>编译顺序为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ncurses</span><br><span class="line">libedit</span><br><span class="line">sqlite3</span><br><span class="line">libuuid</span><br><span class="line">zlib</span><br><span class="line">libxml2</span><br><span class="line">openssl</span><br><span class="line">asterisk</span><br><span class="line">bcg729</span><br><span class="line">asterisk-g72x</span><br></pre></td></tr></table></figure>
+
+<h3 id="ncurses"><a href="#ncurses" class="headerlink" title="ncurses"></a>ncurses</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/ncurses-6.2</span><br><span class="line"></span><br><span class="line">CC=mipsel-linux-gcc CXX=mipsel-linux-g++ \</span><br><span class="line">./configure --build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--disable-stripping \</span><br><span class="line">--with-shared --without-ada --enable-termcap \</span><br><span class="line">--with-build-cc=gcc --with-build-cpp=gcc \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Tips: 参数 <code>--with-build-cc</code> 以及 <code>--with-build-cpp</code> 指定的是开发环境本地编译使用的 gcc 工具链，而非交叉编译工具链。</p>
+</blockquote>
+<h3 id="libedit"><a href="#libedit" class="headerlink" title="libedit"></a>libedit</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/libedit-20210910-3.1</span><br><span class="line"></span><br><span class="line">CC=mipsel-linux-gcc \</span><br><span class="line">CFLAGS=&quot;-I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel/include -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel/include/ncurses&quot; \</span><br><span class="line">LDFLAGS=&quot;-L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel/lib&quot; \</span><br><span class="line">./configure --build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libedit_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Tips: <code>libedit</code> 依赖于 <code>ncurses</code>，所以需要指定 <code>CFLAGS</code>、<code>LDFLAGS</code> 等参数，以便编译时能够正确搜索 <code>ncurses</code> 相关的头文件和库文件。</p>
+</blockquote>
+<h3 id="sqlite3"><a href="#sqlite3" class="headerlink" title="sqlite3"></a>sqlite3</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/sqlite-autoconf-3360000</span><br><span class="line"></span><br><span class="line">CC=mipsel-linux-gcc CXX=mipsel-linux-g++ \</span><br><span class="line">./configure --build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/sqlite3_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<h3 id="libuuid"><a href="#libuuid" class="headerlink" title="libuuid"></a>libuuid</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/libuuid-1.0.3</span><br><span class="line"></span><br><span class="line">CC=mipsel-linux-gcc CXX=mipsel-linux-g++ \</span><br><span class="line">./configure --build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libuuid_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<h3 id="zlib"><a href="#zlib" class="headerlink" title="zlib"></a>zlib</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/zlib-1.2.11</span><br><span class="line"></span><br><span class="line">CC=mipsel-linux-gcc CXX=mipsel-linux-g++ \</span><br><span class="line">./configure --prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/zlib_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<h3 id="libxml2"><a href="#libxml2" class="headerlink" title="libxml2"></a>libxml2</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/libxml2-2.9.12</span><br><span class="line"></span><br><span class="line">./autogen.sh CC=mipsel-linux-gcc \</span><br><span class="line">CFLAGS=&quot;-I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/zlib_build_for_mipsel/include&quot; \</span><br><span class="line">LDFLAGS=&quot;-L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/zlib_build_for_mipsel/lib&quot; \</span><br><span class="line">--build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libxml2_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Tips: <code>libxml2</code> 依赖于 <code>zlib</code>，所以需要指定 <code>CFLAGS</code>、<code>LDFLAGS</code> 等参数，以便编译时能够正确搜索 <code>zlib</code> 相关的头文件和库文件。</p>
+<p>Notice: 与前面编译命令不同 <code>libxml2</code> 使用 <code>./autogen.sh</code> 而不是 <code>./configure</code>，autogen.sh 会生成并运行 configure 同时将传给 autogen.sh 的编译参数传给 configure。</p>
+</blockquote>
+<h3 id="openssl"><a href="#openssl" class="headerlink" title="openssl"></a>openssl</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/openssl-1.1.1l</span><br><span class="line"></span><br><span class="line">./Configure linux-mips32 \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/openssl_build_for_mipsel \</span><br><span class="line">--openssldir=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/openssl_build_for_mipsel \</span><br><span class="line">shared</span><br><span class="line"></span><br><span class="line">sed -i &quot;s/\(CROSS_COMPILE=\).*/\1mipsel-linux-/g&quot; Makefile</span><br><span class="line">sed -i &quot;s/\(CFLAGS=.*\)/\1 -mabi=32 -mglibc -march=mips32/g&quot; Makefile</span><br><span class="line">sed -i &quot;s/\(CXXFLAGS=.*\)/\1 -mabi=32 -mglibc -march=mips32/g&quot; Makefile</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Notice: <code>Configure</code> 是大写的 <code>C</code>，并且执行完成后需要手动修改 Makefile。</p>
+</blockquote>
+<h3 id="asterisk"><a href="#asterisk" class="headerlink" title="asterisk"></a>asterisk</h3><p>设置编译 Asterisk 使用的 <code>CFLAGS</code>、<code>LDFLAGS</code> 参数：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">AST_CFLAGS=&quot;-I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel/include&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel/include/ncurses&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libedit_build_for_mipsel/include&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/sqlite3_build_for_mipsel/include&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libuuid_build_for_mipsel/include&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/zlib_build_for_mipsel/include&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libxml2_build_for_mipsel/include&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libxml2_build_for_mipsel/include/libxml2&quot;</span><br><span class="line">AST_CFLAGS=&quot;$AST_CFLAGS -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/openssl_build_for_mipsel/include&quot;</span><br><span class="line"></span><br><span class="line">AST_LDFLAGS=&quot;-L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/ncurses_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libedit_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/sqlite3_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libuuid_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/zlib_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libxml2_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/openssl_build_for_mipsel/lib&quot;</span><br><span class="line">AST_LDFLAGS=&quot;$AST_LDFLAGS -lncurses&quot;</span><br></pre></td></tr></table></figure>
+
+<p>设置 Asterisk 运行时路径：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AST_RUNTIME_DIR=&quot;/root&quot;</span><br></pre></td></tr></table></figure>
+
+<p>开始编译：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">CC=mipsel-linux-gcc CXX=mipsel-linux-g++ AR=mipsel-linux-ar RANLIB=mipsel-linux-ranlib \</span><br><span class="line">CFLAGS=$AST_CLFAGS LDFLAGS=$AST_LDFLAGS \</span><br><span class="line">./configure --build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--prefix=$AST_RUNTIME_DIR/build_opt/asterisk_build_for_mipsel \</span><br><span class="line">--with-libedit=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libedit_build_for_mipsel \</span><br><span class="line">--with-sqlite3=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/sqlite3_build_for_mipsel \</span><br><span class="line">--with-libxml2=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/libxml2_build_for_mipsel \</span><br><span class="line">--with-crypto=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/openssl_build_for_mipsel \</span><br><span class="line">--with-ssl=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/openssl_build_for_mipsel \</span><br><span class="line">--without-bluetooth \</span><br><span class="line">--without-dahdi \</span><br><span class="line">--with-jansson-bundled \</span><br><span class="line">--with-pjproject-bundled \</span><br><span class="line">--without-ldap \</span><br><span class="line">--without-netsnmp \</span><br><span class="line">--without-pri \</span><br><span class="line">--disable-xmldoc</span><br><span class="line"></span><br><span class="line">make menuselect/menuselect menuselect-tree menuselect.makeopts</span><br><span class="line">menuselect/menuselect --enable-all</span><br><span class="line"></span><br><span class="line">make</span><br><span class="line">make install DESTDIR=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/asterisk_build_for_mipsel</span><br><span class="line">make samples DESTDIR=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/asterisk_build_for_mipsel</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Tips: 如果第 19 行报错，则再运行一次即可。</p>
+</blockquote>
+<p>由于指定的运行路径和安装路径有可能不一致，所以需要修复一下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mv /home/ubuntu/MIPSEL_Cross-Compile/build_opt/asterisk_build_for_mipsel/$AST_RUNTIME_DIR/build_opt/asterisk_build_for_mipsel /tmp/ast_tmp</span><br><span class="line">rm -rf /home/ubuntu/MIPSEL_Cross-Compile/build_opt/asterisk_build_for_mipsel</span><br><span class="line">mv /tmp/ast_tmp /home/ubuntu/MIPSEL_Cross-Compile/build_opt/asterisk_build_for_mipsel</span><br></pre></td></tr></table></figure>
+
+<h3 id="bcg729"><a href="#bcg729" class="headerlink" title="bcg729"></a>bcg729</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/bcg729-1.1.1</span><br><span class="line"></span><br><span class="line">CC=mipsel-linux-gcc \</span><br><span class="line">cmake . -DCMAKE_INSTALL_PREFIX=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/bcg729_build_for_mipsel</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Tips: bcg729 最近的几个版本改为使用 cmake 构建，如果需要用 configure 的构建方式下载旧版本即可。</p>
+</blockquote>
+<h3 id="asterisk-g72x"><a href="#asterisk-g72x" class="headerlink" title="asterisk-g72x"></a>asterisk-g72x</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">cd /home/ubuntu/MIPSEL_Cross-Compile/build_start/asterisk-g72x-master</span><br><span class="line"></span><br><span class="line">./autogen.sh</span><br><span class="line">CC=mipsel-linux-gcc \</span><br><span class="line">CFLAGS=&quot;-O3 -fomit-frame-pointer -I/home/ubuntu/MIPSEL_Cross-Compile/build_opt/bcg729_build_for_mipsel/include&quot; \</span><br><span class="line">LDFLAGS=&quot;-L/home/ubuntu/MIPSEL_Cross-Compile/build_opt/bcg729_build_for_mipsel/lib&quot; \</span><br><span class="line">./configure --build=x86_64-linux-gnu --host=mipsel-none-linux-gnu \</span><br><span class="line">--prefix=/home/ubuntu/MIPSEL_Cross-Compile/build_opt/asterisk_build_for_mipsel \</span><br><span class="line">--with-bcg729 \</span><br><span class="line">--with-asterisk-includes=/home/ubuntu/MIPSEL_Cross-Compile/build_start/asterisk-18.7.1/include</span><br><span class="line"></span><br><span class="line">make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Tips: <code>--with-asterisk-includes</code> 参数指定 Asterisk 源代码路径中的头文件。</p>
+</blockquote>
+<h2 id="库安装"><a href="#库安装" class="headerlink" title="库安装"></a>库安装</h2><p>最后，将前面编译出的所有动态链接库（除 asterisk 以及 asterisk-g72x 外）都放置到 Asterisk 的运行目录中。</p>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>将以上描述的过程整理成一个 Makefile 文件，如下：</p>
+<script src="//gist.github.com/0608def14b00121c09490091db93a5df.js?file=makefile_mipsel"></script>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Asterisk/" rel="tag"># Asterisk</a>
+              <a href="/tags/Cross-Compilation/" rel="tag"># Cross Compilation</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/05/testing-asterisk-using-sipp/" rel="prev" title="使用 SIPp 测试 Asterisk 处理能力">
+      <i class="fa fa-chevron-left"></i> 使用 SIPp 测试 Asterisk 处理能力
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/11/10/ROSR-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%AC%AC0%E7%AB%A0/" rel="next" title="ROSR 学习笔记 - 第0章">
+      ROSR 学习笔记 - 第0章 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">环境介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Asterisk-%E4%BE%9D%E8%B5%96%E8%A6%81%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">Asterisk 依赖要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">3.</span> <span class="nav-text">开发环境准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91"><span class="nav-number">4.</span> <span class="nav-text">交叉编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ncurses"><span class="nav-number">4.1.</span> <span class="nav-text">ncurses</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#libedit"><span class="nav-number">4.2.</span> <span class="nav-text">libedit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sqlite3"><span class="nav-number">4.3.</span> <span class="nav-text">sqlite3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#libuuid"><span class="nav-number">4.4.</span> <span class="nav-text">libuuid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#zlib"><span class="nav-number">4.5.</span> <span class="nav-text">zlib</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#libxml2"><span class="nav-number">4.6.</span> <span class="nav-text">libxml2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#openssl"><span class="nav-number">4.7.</span> <span class="nav-text">openssl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#asterisk"><span class="nav-number">4.8.</span> <span class="nav-text">asterisk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bcg729"><span class="nav-number">4.9.</span> <span class="nav-text">bcg729</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#asterisk-g72x"><span class="nav-number">4.10.</span> <span class="nav-text">asterisk-g72x</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%93%E5%AE%89%E8%A3%85"><span class="nav-number">5.</span> <span class="nav-text">库安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">6.</span> <span class="nav-text">附录</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

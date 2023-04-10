@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"clarenceyk.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="尝试解答 OSTEP 1 第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【OSTEP 练习题】测量操作系统切换上下文的耗时">
+<meta property="og:url" content="https://clarenceyk.github.io/2020/07/11/ostep-measure-cost-of-context-switch/index.html">
+<meta property="og:site_name" content="Old Stone">
+<meta property="og:description" content="尝试解答 OSTEP 1 第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。">
+<meta property="og:locale">
+<meta property="og:image" content="https://clarenceyk.github.io/2020/07/11/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg">
+<meta property="og:image" content="https://clarenceyk.github.io/2020/07/11/ostep-measure-cost-of-context-switch/stress_cpu.png">
+<meta property="article:published_time" content="2020-07-11T08:49:16.000Z">
+<meta property="article:modified_time" content="2021-03-02T02:47:19.000Z">
+<meta property="article:author" content="uklar">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Operating System">
+<meta property="article:tag" content="Context Switch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://clarenceyk.github.io/2020/07/11/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg">
+
+<link rel="canonical" href="https://clarenceyk.github.io/2020/07/11/ostep-measure-cost-of-context-switch/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>【OSTEP 练习题】测量操作系统切换上下文的耗时 | Old Stone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Old Stone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://clarenceyk.github.io/2020/07/11/ostep-measure-cost-of-context-switch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【OSTEP 练习题】测量操作系统切换上下文的耗时
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-07-11 16:49:16" itemprop="dateCreated datePublished" datetime="2020-07-11T16:49:16+08:00">2020-07-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-03-02 10:47:19" itemprop="dateModified" datetime="2021-03-02T10:47:19+08:00">2021-03-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <img src="/2020/07/11/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg" class="" title="measure_ctx_switch" alt="measure_ctx_switch">
+
+<p>尝试解答 <code>OSTEP</code> <sup><a href="#%E6%B3%A8%E9%87%8A">1</a></sup> 第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。</p>
+<span id="more"></span>
+
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>使用的测试平台 CPU 是 Intel i5-6200U，主频 2.3GHz，操作系统是 Arch Linux，内核版本 5.7.7。</p>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>为了尽量准确地测量进程上下文切换耗时，需要有如下几个前提：</p>
+<ol>
+<li>创建 2 个测试进程；</li>
+<li>保证这 2 个进程运行在同一个 CPU 核上（鉴于目前的计算平台一般为多核 CPU）；</li>
+<li>保证正在运行这 2 个测试进程的 CPU 核上没有运行其他用户进程；</li>
+<li>尽量使操作系统在指定时刻执行进程调度（与此同时执行上下文切换）。</li>
+</ol>
+<h3 id="进程创建"><a href="#进程创建" class="headerlink" title="进程创建"></a>进程创建</h3><p>使用 <code>fork</code> 系统调用创建子进程：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (fork()) &#123;</span><br><span class="line"><span class="keyword">case</span> <span class="number">-1</span>: <span class="comment">// error handling</span></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span>: <span class="comment">// child process</span></span><br><span class="line">    <span class="comment">// do something in child process</span></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_SUCESS);</span><br><span class="line"><span class="keyword">default</span>: <span class="comment">// parent process</span></span><br><span class="line">    <span class="comment">// do something in parent process</span></span><br><span class="line">    <span class="built_in">exit</span>(EXIT_SUCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="sched-setaffinity"><a href="#sched-setaffinity" class="headerlink" title="sched_setaffinity"></a>sched_setaffinity</h3><p>使用 <code>sched_setaffinity</code> 指定进程运行在 <code>CPU3</code> 这个核心上：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> CPU_NUM 3</span></span><br><span class="line"></span><br><span class="line"><span class="type">cpu_set_t</span> <span class="built_in">set</span>;</span><br><span class="line"></span><br><span class="line">CPU_ZERO(&amp;<span class="built_in">set</span>);</span><br><span class="line">CPU_SET(CPU_NUM, &amp;<span class="built_in">set</span>);</span><br><span class="line"><span class="keyword">if</span> (sched_setaffinity(getpid(), <span class="keyword">sizeof</span>(<span class="built_in">set</span>), &amp;<span class="built_in">set</span>) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// error handling</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// set successfully</span></span><br><span class="line"><span class="comment">// do other things</span></span><br></pre></td></tr></table></figure>
+
+<p>此操作只需在父进程 fork 子进程之前执行即可，子进程默认情况下会和父进程运行在同一个 CPU 核上。</p>
+<h3 id="内核启动参数"><a href="#内核启动参数" class="headerlink" title="内核启动参数"></a>内核启动参数</h3><p>为了保证指定的 CPU 核上只有用于测试的 2 个用户进程，需要设置 <code>isolcpus</code> 这个启动参数给内核。此参数告诉内核在调度其余用户进程时排除指定的 CPU 核心。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /proc/cmdline</span><br><span class="line"><span class="comment"># BOOT_IMAGE=... isolcpus=3 ...</span></span><br></pre></td></tr></table></figure>
+
+<p>重新启动计算机，在进入 GRUB 启动界面时选择启动项并按下 <code>e</code>，进入启动项编辑界面，找到 <code>linux</code> 为开头的一行在行尾添加如下启动参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">isolcpus=3 <span class="comment"># 3 代表测试平台中 CPU 的一个核的编号</span></span><br></pre></td></tr></table></figure>
+
+<p>查看设备 CPU 核心数可在进入系统后命令行执行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lscpu</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo</span><br></pre></td></tr></table></figure>
+
+<p>设置完后可以用 <code>stress</code> 命令测试一下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo pacman -S stress</span><br><span class="line">stress --cpu 8</span><br></pre></td></tr></table></figure>
+
+<p>从下图可以看出内核在调度用户进程时绕开了 <code>CPU3</code>（从 0 开始计数）。</p>
+<img src="/2020/07/11/ostep-measure-cost-of-context-switch/stress_cpu.png" class="" title="stress_cpu" alt="stress_cpu">
+
+<h3 id="Pipe"><a href="#Pipe" class="headerlink" title="Pipe"></a>Pipe</h3><p>以上几个步骤保证了在 <code>CPU3</code> 核心上只有用于测试的 2 个用户进程，接下来只需要让内核来回切换（调度）这 2 个测试进程即可。</p>
+<p>使用的方法是：创建 2 个 <code>pipe</code>，子进程向 <code>pipe0</code> 写入一个字符然后从 <code>pipe1</code> 读取一个字符，父进程从 <code>pipe0</code> 读取一个字符然后将读取到的字符写入 <code>pipe1</code>，这样重复 N&#x2F;2 次。当子进程在“等待”读取时内核就执行调度切换到父进程，当父进程在“等待”读取时内核执行调度切换到子进程，所以测试进程一次“读写”完成后内核执行了 2 次上下文切换，既总共完成了 N 次切换。更加直观的过程如<a href="#top">题图</a>所示。</p>
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>在我的平台<sup><a href="#%E6%B3%A8%E9%87%8A">2</a></sup> 上的测试结果为：操作系统上下文切换平均耗时 3.42 微秒。</p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><script src="//gist.github.com/75ddfa9545480b9a44d329a5bf8c22f1.js?file=measure_cost_of_ctx.c"></script>
+
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><p><sub>[1] Operating System: Three Easy Pieces - ARPACI-DUSSEAU</sub><br><sub>[2] Intel i5-6200U @ 2.3GHz, Arch Linux, Kernel 5.7.7</sub></p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>Welcome to my other publishing channels</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/username">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/Operating-System/" rel="tag"># Operating System</a>
+              <a href="/tags/Context-Switch/" rel="tag"># Context Switch</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/08/%E5%A4%8D%E5%88%BB-Linux-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%88%B0%E5%8F%A6%E4%B8%80%E5%8F%B0%E8%AE%BE%E5%A4%87/" rel="prev" title="复刻 Linux 操作系统到另一台设备">
+      <i class="fa fa-chevron-left"></i> 复刻 Linux 操作系统到另一台设备
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/" rel="next" title="用 LXD 容器化 VoIP 服务">
+      用 LXD 容器化 VoIP 服务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83"><span class="nav-number">1.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E5%88%9B%E5%BB%BA"><span class="nav-number">2.1.</span> <span class="nav-text">进程创建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sched-setaffinity"><span class="nav-number">2.2.</span> <span class="nav-text">sched_setaffinity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0"><span class="nav-number">2.3.</span> <span class="nav-text">内核启动参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pipe"><span class="nav-number">2.4.</span> <span class="nav-text">Pipe</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E7%A0%81"><span class="nav-number">4.</span> <span class="nav-text">源码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E9%87%8A"><span class="nav-number">5.</span> <span class="nav-text">注释</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">uklar</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ClarenceYk" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ClarenceYk" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="far fa-keyboard"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">uklar</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
