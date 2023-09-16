@@ -155,6 +155,71 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.mahyang.uk/2023/09/16/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E7%BC%96%E8%AF%91%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/09/16/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E7%BC%96%E8%AF%91%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/" class="post-title-link" itemprop="url">如何在 WSL 中编译加载内核模块</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-16 20:20:28" itemprop="dateCreated datePublished" datetime="2023-09-16T20:20:28+08:00">2023-09-16</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Windows 系统中集成的 WSL 子系统非常好用，特别是到了 WSL2 这个版本，配合 Ubuntu 发行版可以应付绝大多数工作需求。但是这个系统中使用的内核是微软提供的，不允许加载内核模块，导致自己编译的模块无法使用。如果想要加载内核模块则需要自己编译内核供 WSL 使用。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/16/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E7%BC%96%E8%AF%91%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://blog.mahyang.uk/2023/06/08/%E5%A4%8D%E7%9B%98%E4%B8%80%E9%81%93%E9%9D%A2%E8%AF%95%E7%AE%97%E6%B3%95%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -771,80 +836,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://blog.mahyang.uk/2020/07/11/ostep-measure-cost-of-context-switch/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="uklar">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Old Stone">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/07/11/ostep-measure-cost-of-context-switch/" class="post-title-link" itemprop="url">【OSTEP 练习题】测量操作系统切换上下文的耗时</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-07-11 16:49:16" itemprop="dateCreated datePublished" datetime="2020-07-11T16:49:16+08:00">2020-07-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-03-02 10:47:19" itemprop="dateModified" datetime="2021-03-02T10:47:19+08:00">2021-03-02</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <img src="/2020/07/11/ostep-measure-cost-of-context-switch/measure_cost_of_context_switch.svg" class="" title="measure_ctx_switch" alt="measure_ctx_switch">
-
-<p>尝试解答 <code>OSTEP</code> <sup><a href="#%E6%B3%A8%E9%87%8A">1</a></sup> 第6章 “Limited Direct Execution” 的练习题 —— 测量操作系统切换上下文的耗时。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/07/11/ostep-measure-cost-of-context-switch/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -914,14 +905,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">22</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">38</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
