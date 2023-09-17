@@ -155,6 +155,71 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://blog.mahyang.uk/2023/09/17/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E8%AE%BF%E9%97%AE-U-%E7%9B%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="uklar">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Old Stone">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/09/17/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E8%AE%BF%E9%97%AE-U-%E7%9B%98/" class="post-title-link" itemprop="url">如何在 WSL 中访问 U 盘</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-17 10:14:11" itemprop="dateCreated datePublished" datetime="2023-09-17T10:14:11+08:00">2023-09-17</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在 WSL 中可以通过 <code>/mnt/</code> 目录很方便地访问 Windows 主机的文件系统，但是如果我们 PC 上接 U 盘，这个 U 盘只能在 Windows 系统里访问而不能在 WSL 里访问。如果想要在 WSL 中使用 <code>dd</code> 命令读写 U 盘或者挂载 U 盘到 WSL 系统，则需要让 USB 设备连接到 WSL，但是默认情况下 WSL 不支持这种操作所以我们需要对 WSL 进行一些修改。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/17/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E8%AE%BF%E9%97%AE-U-%E7%9B%98/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="https://blog.mahyang.uk/2023/09/16/%E5%A6%82%E4%BD%95%E5%9C%A8-WSL-%E4%B8%AD%E7%BC%96%E8%AF%91%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -769,80 +834,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://blog.mahyang.uk/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="uklar">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Old Stone">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/" class="post-title-link" itemprop="url">用 LXD 容器化 VoIP 服务</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-07-25 10:39:18" itemprop="dateCreated datePublished" datetime="2020-07-25T10:39:18+08:00">2020-07-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-07-26 16:31:33" itemprop="dateModified" datetime="2020-07-26T16:31:33+08:00">2020-07-26</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <img src="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/top_pic.jpg" class="" title="top_pic" alt="top_pic">
-
-<p>将有繁琐配置的开发环境打包进容器中能减少我们的开发负担，本文将介绍如何把基于 Asterisk 的 VoIP 服务容器化。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/07/25/create-a-linux-container-of-debian-with-asterisk-freepbx-installed/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -912,7 +903,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
