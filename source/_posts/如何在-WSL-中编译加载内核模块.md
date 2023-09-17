@@ -1,7 +1,7 @@
 ---
 title: 如何在 WSL 中编译加载内核模块
 date: 2023-09-16 20:20:28
-updated: 2023-09-16 20:20:28
+updated: 2023-09-17 09:20:28
 tags:
 - WSL
 - Kernel Module
@@ -57,6 +57,12 @@ kernel=C:\\Users\\uklar\\bzImage
 ```
 
 这里的配置就是指定 WSL 启动使用的内核。
+
+关闭 WSL 再启动，以生效更改：
+
+```
+wsl --shutdown
+```
 
 ## 测试
 
