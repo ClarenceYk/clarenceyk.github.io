@@ -3,7 +3,7 @@ title: Rust Journey - Part0
 tags:
   - Rust
 date: 2025-07-26 14:06:00
-updated: 2025-07-26 14:06:00
+updated: 2025-07-27 13:06:00
 ---
 
 Rust Programming language 是一个相对年轻的编程语言（和 C 比较起来的话）也是一门潜力十足的语言。甚至不能说是“潜力”了，因为在产业中已经有很多应用的案例，比如最近的 DebConf25 大会上 Fabian 指出，Debian Sid 中大约有 8% 的源码包至少基于一个 librust* 包进行构建；又比如 Ubuntu 正在积极探索将基于 Rust 编写的 uutils 用于替换 GNU Core Utilities。
@@ -102,4 +102,117 @@ println!("Hello, world!");
 第三，在这行的结尾处使用了分号，用于表示表达式的结束以及下一个表达式的开始。绝大多数的 Rust 代码都用分号结尾。
 
 对于简单的程序，我们使用 `rustc` 来编译就够了，但是随着项目的开发我们需要一个工具来帮助我们管理各种选项甚至是和其他人共同开发，这就是 `Cargo` 的作用。使用它可以帮助我们写出 `real-world` Rust 程序。
+
+## Cargo
+
+`Cargo` 是一个工具用来编译 Rust 项目以及进行包管理。因为 Cargo 可以简化很多操作包括但不限于以下：
+
+- 编译项目源码
+- 自动下载并编译项目依赖的库
+
+所以几乎所有 Rust 程序员都会在项目中使用这个工具。像我们前面写的简单项目，只能用到 Cargo 的部分功能（编译），但随着项目的逐渐变大需要用到第三方库时，使用 Cargo 就能简化这个过程。
+
+前面我们在安装 Rust 工具链中已经包含了 Cargo，可以执行以下命令来确认：
+
+```
+$ cargo --version
+```
+
+### 使用 Cargo 来创建项目
+
+这次我们用 Cargo 来创建一个“Hello, world!”项目，看看和前文创建的项目有什么不一样。回到我们的项目目录下，同时执行以下命令：
+
+```
+$ cargo new hello_cargo
+$ cd hello_cargo
+```
+第一行命令会创建一个新的目录名叫 `hello_cargo` 同时这也是项目的名字，Cargo 会在这个目录下自动创建相应的项目文件。
+
+进入这个目录当中同时列出所有的文件，我们会看到 Cargo 创建了 2 个文件以及一个目录：
+
+- Cargo.toml
+- src
+- src/main.rc
+
+同时 Cargo 会初始化一个 git 仓库。需要注意的是如果指定的目录下已经存在一个 git 仓库了 Cargo 就不会执行这个动作。
+
+打开 `Cargo.toml` 文件，我们可以看到以下内容：
+
+```toml
+[package]
+name = "hello_cargo"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+```
+
+此文件是 Cargo 的配置文件，采用 TOML 文件格式。`[package]` 是配置段的头，表示之后的内容用于配置此软件包。后面的三行表示这个软件包的配置内容，例如，软件包的名字、版本信息以及使用什么版本的 rustc 来编译源代码。
+
+最后一个行 `[dependencies]` 表示依赖段，我们可以将项目依赖的其他包列在这里。在 Rust 中一般把软件包称作 *crates*。目前这个项目还不依赖任何软件包，所以这个可以留空。
+
+现在打开 `src/main.rs` 看看：
+
+```rust
+fn main() {
+    println!("Hello, world!");
+}
+```
+
+Cargo 自动生成了一个程序和我们之前写的一模一样。到目前 Cargo 生成的项目和之前的项目不同的地方在于源码文件 `main.rs` 放在了 `src` 目录中以及多了一个 `.toml` 文件。
+
+使用 Cargo 来组织项目文件的话，最好把源代码文件都放在 src 目录下，而项目顶层目录可以放一些和源码无关的文件，例如：README、授权信息文件、配置文件等。
+
+### 编译和运行 Cargo 项目
+
+通过 Cargo 来编译项目只需要执行以下命令：
+
+```
+$ cargo build
+   Compiling hello_cargo v0.1.0 (file:///projects/hello_cargo)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.85 secs
+```
+
+这条命令会编译出一个可执行文件 `target/debug/hello_cargo`。因为默认是编译 debug 文件，所以路径是 debug 下。这个文件可以直接执行：
+
+```
+$ ./target/debug/hello_cargo # or .\target\debug\hello_cargo.exe on Windows
+Hello, world!
+```
+
+可以看到终端中输出了“Hello, world!”。当第一次执行 `cargo build` 时，Cargo 会创建一个 *Cargo.lock* 文件，这个文件用于记录目录使用的第三方库的版本，我们不用自己去维护这个文件，交给 Cargo 就好。
+
+我们也可以直接执行：
+
+```
+$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
+     Running `target/debug/hello_cargo`
+Hello, world!
+```
+
+来运行编译之后的文件。可以看到这次没有编译项相关的输出，这是因为我们没有修改源码，Cargo 判断出不需要重新编译。但是如果我们修改了源码，再执行这个条命令的话：
+
+```
+$ cargo run
+   Compiling hello_cargo v0.1.0 (file:///projects/hello_cargo)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.33 secs
+     Running `target/debug/hello_cargo`
+Hello, world!
+```
+
+Cargo 就会重新编译代码之后再执行程序。
+
+另外，Cargo 还提供了一个 check 命令。这个命令的作用是确保源代码没有错误可以编译通过，但不会创建可执行文件，这样就比 `cargo build` 要执行得快一些。
+
+总结一下 Cargo 的用法：
+
+- 创建项目用：`cargo new`
+- 编译项目用：`cargo build`
+- 编译并运行项目用：`cargo run`
+- 确保项目没有错误用：`cargo check`
+
+### 编译 Release 目标文件
+
+当项目最后需要释放了，就可以使用 `cargo build --release` 来编译目标文件，这个命令会需要更多的时间来执行，但是会优化代码使得最终的可执行文件运行效率更高。同时这个可执行文件在目录 *target/release* 中。
 
