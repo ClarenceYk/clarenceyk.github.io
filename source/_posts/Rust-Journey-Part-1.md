@@ -616,7 +616,7 @@ error: could not compile `functions` (bin "functions") due to 1 previous error
 
 ## 注释
 
-编程人员会尽力写出容易理解的代码，但是代码有时候需要有额外的解释，这时编程人员会在代码中留下*注释*给其他人看。编译器在编译其中会忽略注释。
+编程人员会尽力写出容易理解的代码，但是代码有时候需要有额外的解释，这时编程人员会在代码中留下*注释*给其他人看。编译器在编译期间会忽略注释。
 
 单行注释如：
 
@@ -632,7 +632,7 @@ error: could not compile `functions` (bin "functions") due to 1 previous error
 // explain what's going on.
 ```
 
-也可以用 `/*` 和 `*/`
+也可以用 `/*` 和 `*/`：
 
 ```rust
 /* So we’re doing something complicated here, long enough that we need
@@ -648,5 +648,5 @@ fn main() {
 }
 ```
 
-Rust 还提供一种称为文档注释的注释，这个在后面讨论。
+Rust 还提供一种称为*文档注释*的注释，这个在后面讨论。
 
