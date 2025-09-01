@@ -438,20 +438,20 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ cargo run</span><br><span class="line">   Compiling functions v0.1.0 (file:///projects/functions)</span><br><span class="line">error[E0308]: mismatched types</span><br><span class="line"> --&gt; src/main.rs:7:24</span><br><span class="line">  |</span><br><span class="line">7 | fn plus_one(x: i32) -&gt; i32 &#123;</span><br><span class="line">  |    --------            ^^^ expected `i32`, found `()`</span><br><span class="line">  |    |</span><br><span class="line">  |    implicitly returns `()` as its body has no tail or `return` expression</span><br><span class="line">8 |     x + 1;</span><br><span class="line">  |          - help: remove this semicolon to return this value</span><br><span class="line"></span><br><span class="line">For more information about this error, try `rustc --explain E0308`.</span><br><span class="line">error: could not compile `functions` (bin &quot;functions&quot;) due to 1 previous error</span><br></pre></td></tr></table></figure>
 
 <p>这段报错信息指出了一个核心信息就是 <code>mismatched types</code>，<code>plus_one</code> 函数定义的返回值类型是 <code>i32</code>，但是语句没有返回值，函数没有返回值时会隐式返回 <code>()</code> 其类型为单元类型，于是报出了类型不匹配错误。</p>
-<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><p>编程人员会尽力写出容易理解的代码，但是代码有时候需要有额外的解释，这时编程人员会在代码中留下<em>注释</em>给其他人看。编译器在编译其中会忽略注释。</p>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><p>编程人员会尽力写出容易理解的代码，但是代码有时候需要有额外的解释，这时编程人员会在代码中留下<em>注释</em>给其他人看。编译器在编译期间会忽略注释。</p>
 <p>单行注释如：</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// hello, world</span></span><br></pre></td></tr></table></figure>
 
 <p>多行注释如：</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// So we&#x27;re doing something complicated here, long enough that we need</span></span><br><span class="line"><span class="comment">// multiple lines of comments to do it! Whew! Hopefully, this comment will</span></span><br><span class="line"><span class="comment">// explain what&#x27;s going on.</span></span><br></pre></td></tr></table></figure>
 
-<p>也可以用 <code>/*</code> 和 <code>*/</code></p>
+<p>也可以用 <code>/*</code> 和 <code>*/</code>：</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* So we’re doing something complicated here, long enough that we need</span></span><br><span class="line"><span class="comment">   multiple lines of comments to do it! Whew! Hopefully, this comment will</span></span><br><span class="line"><span class="comment">   explain what’s going on. */</span></span><br></pre></td></tr></table></figure>
 
 <p>也可以和代码写在同一行中：</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">lucky_number</span> = <span class="number">7</span>; <span class="comment">// I&#x27;m feeling lucky today</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>Rust 还提供一种称为文档注释的注释，这个在后面讨论。</p>
+<p>Rust 还提供一种称为<em>文档注释</em>的注释，这个在后面讨论。</p>
 
     </div>
 
