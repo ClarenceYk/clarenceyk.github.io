@@ -3,7 +3,7 @@ title: Rust Journey - Part1
 tags:
   - Rust
 date: 2025-08-03 19:35:00
-updated: 2025-08-09 15:35:00
+updated: 2025-09-01 16:47:00
 ---
 
 
@@ -401,5 +401,252 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 
 ## 函数
 
-to be continued...
+函数在 Rust 中很常见，我们已经看到过一个函数就是 `main` 它也是整个程序的入口。`fn` 关键字用于定义一个函数。在 Rust 中使用 snake 命名法来命名函数名和变量名，也就是这些名字都用小写字母加下划线，例如：
+
+```rust
+fn main() {
+    println!("Hello, world!");
+
+    another_function();
+}
+
+fn another_function() {
+    println!("Another function.");
+}
+```
+
+定义函数时用 `fn` 加上一个函数名字以及一对圆括号，之后再跟上一对花括号用于告诉函数体的开始和结束。调用函数时，使用函数名字后面跟上一对圆括号。在 Rust 中不需要关心函数定义的位置，都能调用。只要函数定义的作用域中调用这能看到即可。
+
+### 函数参数
+
+定义的函数可以同时定义形式参数，参数是函数签名的一部分。在调用函数时，可以通过圆括号传入实际参数，但是为了方便描述，一般不去区分形式参数和实际参数。我们为上面定义的 `another_function` 加一个参数：
+
+```rust
+fn main() {
+    another_function(5);
+}
+
+fn another_function(x: i32) {
+    println!("The value of x is: {x}");
+}
+```
+
+运行：
+
+```rust
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.21s
+     Running `target/debug/functions`
+The value of x is: 5
+```
+
+在函数的签名当中，定义每个参数时必须指明其类型，这是故意设计的，因为编译器很难知道在另外一个地方使用定义的函数时所需的参数类型是怎样的。
+
+定义多个函数参数可以用逗号隔开：
+
+```rust
+fn main() {
+    print_labeled_measurement(5, 'h');
+}
+
+fn print_labeled_measurement(value: i32, unit_label: char) {
+    println!("The measurement is: {value}{unit_label}");
+}
+```
+
+### 语句和表达式
+
+函数体由一系列的语句组成，并且可以用一个表达式作为结束。目前我们还没有遇到用表达式作为函数体结束的情况。因为 Rust 是一门居于表达式的语言，这是一个很重要的区别，其他语言则没有这样的区分。首先来看看语句和表达式的差异，以及如何影响函数体：
+
+- 语句是一条指令，用于执行命令不会产生返回值
+- 表达式会产生返回值
+
+用 `let` 关键字定义一个变量和用 `fn` 关键字定义一个函数都是语句（调用函数不是语句）。因为语句没有返回值，所以我们不能将 `let` 语句赋值给其他变量，如下，会产生编译错误：
+
+```rust
+fn main() {
+    let x = (let y = 6);
+}
+```
+
+编译错误大概是这样的：
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+error: expected expression, found `let` statement
+ --> src/main.rs:2:14
+  |
+2 |     let x = (let y = 6);
+  |              ^^^
+  |
+  = note: only supported directly in conditions of `if` and `while` expressions
+
+warning: unnecessary parentheses around assigned value
+ --> src/main.rs:2:13
+  |
+2 |     let x = (let y = 6);
+  |             ^         ^
+  |
+  = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+  |
+2 -     let x = (let y = 6);
+2 +     let x = let y = 6;
+  |
+
+warning: `functions` (bin "functions") generated 1 warning
+error: could not compile `functions` (bin "functions") due to 1 previous error; 1 warning emitted
+```
+
+语句 `let y = 6` 没有返回值，所以 `x` 没法绑定任何值，这在如 `C` 和 `Ruby` 之类的变成语言中是不一样的。在这些语言中赋值操作本身会产生被赋值的值，所以在这些语言中可以使用连续赋值操作：`x = y = 6`，在 rust 中没有这样的操作。
+
+表达式的形式有如下几种，但不限于：
+
+- 数学运算：`5 + 6`
+- 语句 `let y = 6;` 中的 `6`
+- 调用函数
+- 调用宏
+- 一个新定义的 scope block，例如
+
+```rust
+fn main() {
+    let y = {
+        let x = 3;
+        x + 1
+    };
+
+    println!("The value of y is: {y}");
+}
+```
+
+上面这段代码中的：
+
+```rust
+{
+    let x = 3;
+    x + 1
+}
+```
+
+就是一个块，最终会得到 `4` 这个值，`4` 有会绑定到 `y` 上，作为 `let` 语句的组成部分。注意，`x + 1` 这里是没有结束时的分号，因为表达式不带分号，如果加上分号就变成了语句，也就意味着不会产生返回值了。
+
+
+### 带返回值的函数
+
+函数会返回一个值给其调用者。函数的返回值不用命名，但是我们必须用 `->` 指定返回值的类型。在 Rust 中函数的返回值和函数体中最后一行表达式的值是一致的。我们也可以用 `return` 关键字来提前让函数返回同时提供返回值，但大多数情况下都隐式地用最后一行表达式的值。
+
+```rust
+fn five() -> i32 {
+    5
+}
+
+fn main() {
+    let x = five();
+
+    println!("The value of x is: {x}");
+}
+```
+
+在 `five` 函数中除了一个 `5` 表达式其余什么都没有，这在 rust 中也是完全合法的。可以看到函数的返回值类型通过 `-> i32` 来指定了，运行代码可以得到如下结果：
+
+```rust
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running `target/debug/functions`
+The value of x is: 5
+```
+
+一些需要注意的细节：
+
+- 因为 `five` 的返回值是 `5`，所以返回值类型是 `i32`
+- 语句 `let x = five();` 用函数的返回值来初始化变量，所以和语句 `let x = 5;` 的效果一样
+- `five` 没有定义形参，但定义了返回值类型；`5` 后面没有分号，所以这个表达式的值可以作为函数的返回值
+
+再看一个例子：
+
+```rust
+fn main() {
+    let x = plus_one(5);
+
+    println!("The value of x is: {x}");
+}
+
+fn plus_one(x: i32) -> i32 {
+    x + 1
+}
+```
+
+运行这段代码会在屏幕上打印出：`The value of x is: 6`，但如果在 `x + 1` 后面加上分号，也就是将表达式改为了语句，那么我们会得到一个编译错误：
+
+```rust
+fn main() {
+    let x = plus_one(5);
+
+    println!("The value of x is: {x}");
+}
+
+fn plus_one(x: i32) -> i32 {
+    x + 1;
+}
+```
+
+编译输出：
+
+```
+$ cargo run
+   Compiling functions v0.1.0 (file:///projects/functions)
+error[E0308]: mismatched types
+ --> src/main.rs:7:24
+  |
+7 | fn plus_one(x: i32) -> i32 {
+  |    --------            ^^^ expected `i32`, found `()`
+  |    |
+  |    implicitly returns `()` as its body has no tail or `return` expression
+8 |     x + 1;
+  |          - help: remove this semicolon to return this value
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `functions` (bin "functions") due to 1 previous error
+```
+
+这段报错信息指出了一个核心信息就是 `mismatched types`，`plus_one` 函数定义的返回值类型是 `i32`，但是语句没有返回值，函数没有返回值时会隐式返回 `()` 其类型为单元类型，于是报出了类型不匹配错误。
+
+## 注释
+
+编程人员会尽力写出容易理解的代码，但是代码有时候需要有额外的解释，这时编程人员会在代码中留下*注释*给其他人看。编译器在编译其中会忽略注释。
+
+单行注释如：
+
+```rust
+// hello, world
+```
+
+多行注释如：
+
+```rust
+// So we're doing something complicated here, long enough that we need
+// multiple lines of comments to do it! Whew! Hopefully, this comment will
+// explain what's going on.
+```
+
+也可以用 `/*` 和 `*/`
+
+```rust
+/* So we’re doing something complicated here, long enough that we need
+   multiple lines of comments to do it! Whew! Hopefully, this comment will
+   explain what’s going on. */
+```
+
+也可以和代码写在同一行中：
+
+```rust
+fn main() {
+    let lucky_number = 7; // I'm feeling lucky today
+}
+```
+
+Rust 还提供一种称为文档注释的注释，这个在后面讨论。
 
